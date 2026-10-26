@@ -18,8 +18,20 @@ class AppButton extends StatefulWidget {
     this.height,
     this.radius,
     this.expanded = false,
+    this.padding,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.borderColor,
+    this.borderWidth,
+    this.gradient,
+    this.shadows,
+    this.textStyle,
+    this.iconSize,
+    this.gap,
+    this.pressedScale,
+    this.haptic = true,
     this.isLoading = false,
-    this.shimmer = true,
+    this.shimmer = false,
   });
 
   final String label;
@@ -31,6 +43,18 @@ class AppButton extends StatefulWidget {
   final double? height;
   final double? radius;
   final bool expanded;
+  final EdgeInsetsGeometry? padding;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final Color? borderColor;
+  final double? borderWidth;
+  final Gradient? gradient;
+  final List<BoxShadow>? shadows;
+  final TextStyle? textStyle;
+  final double? iconSize;
+  final double? gap;
+  final double? pressedScale;
+  final bool haptic;
   final bool isLoading;
   final bool shimmer;
 
@@ -62,13 +86,24 @@ class _AppButtonState extends State<AppButton>
   @override
   Widget build(BuildContext context) {
     final palette = AppButtonPalette.of(context, widget.variant);
+    final foreground = widget.foregroundColor ?? palette.foreground;
     final height = widget.height ?? 56.h;
-    final borderRadius = BorderRadius.circular(widget.radius ?? height / 2);
+    final borderRadius = BorderRadius.circular(widget.radius ?? 16.r);
     final interactive = widget.onPressed != null && !widget.isLoading;
     final effects = widget.shimmer && interactive;
+    final hasBorderOverride =
+        widget.borderColor != null || widget.borderWidth != null;
+    final border = hasBorderOverride
+        ? Border.all(
+            color: widget.borderColor ?? foreground,
+            width: widget.borderWidth ?? 1.5,
+          )
+        : palette.border;
 
     return AppPressable(
       onTap: interactive ? widget.onPressed : null,
+      pressedScale: widget.pressedScale ?? 0.97,
+      haptic: widget.haptic,
       child: AnimatedOpacity(
         opacity: widget.onPressed == null ? 0.5 : 1,
         duration: const Duration(milliseconds: 200),
@@ -76,10 +111,11 @@ class _AppButtonState extends State<AppButton>
           width: widget.expanded ? double.infinity : widget.width,
           height: height,
           decoration: BoxDecoration(
-            color: palette.color,
-            border: palette.border,
+            color: widget.backgroundColor ?? palette.color,
+            gradient: widget.gradient,
+            border: border,
             borderRadius: borderRadius,
-            boxShadow: palette.shadows,
+            boxShadow: widget.shadows ?? palette.shadows,
           ),
           child: ClipRRect(
             borderRadius: borderRadius,
@@ -114,8 +150,9 @@ class _AppButtonState extends State<AppButton>
                     ),
                   ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 28.w),
-                  child: _buildContent(palette, effects),
+                  padding:
+                      widget.padding ?? EdgeInsets.symmetric(horizontal: 28.w),
+                  child: _buildContent(foreground, effects),
                 ),
               ],
             ),
@@ -125,7 +162,7 @@ class _AppButtonState extends State<AppButton>
     );
   }
 
-  Widget _buildContent(AppButtonPalette palette, bool effects) {
+  Widget _buildContent(Color foreground, bool effects) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       switchInCurve: Curves.easeOutBack,
@@ -142,22 +179,25 @@ class _AppButtonState extends State<AppButton>
               height: 24.r,
               child: CircularProgressIndicator(
                 strokeWidth: 2.5,
-                color: palette.foreground,
+                color: foreground,
               ),
             )
           : AnimatedBuilder(
               key: const ValueKey('content'),
               animation: _controller,
-              builder: (context, _) => _buildRow(palette, effects),
+              builder: (context, _) => _buildRow(foreground, effects),
             ),
     );
   }
 
-  Widget _buildRow(AppButtonPalette palette, bool effects) {
-    final style = AppFonts.titleMedium.copyWith(color: palette.foreground);
+  Widget _buildRow(Color foreground, bool effects) {
+    final style = (widget.textStyle ?? AppFonts.titleMedium).copyWith(
+      color: foreground,
+    );
     final sign = Directionality.of(context) == TextDirection.rtl ? -1.0 : 1.0;
     final icon = widget.icon;
     final atStart = widget.iconPosition == AppButtonIconPosition.start;
+    final gap = widget.gap ?? 10.w;
 
     final label = AnimatedSwitcher(
       duration: const Duration(milliseconds: 350),
@@ -191,8 +231,8 @@ class _AppButtonState extends State<AppButton>
           child: Icon(
             icon,
             key: ValueKey(icon),
-            size: 22.r,
-            color: palette.foreground,
+            size: widget.iconSize ?? 22.r,
+            color: foreground,
           ),
         ),
       );
@@ -207,11 +247,11 @@ class _AppButtonState extends State<AppButton>
         children: [
           if (iconWidget != null && atStart) ...[
             iconWidget,
-            SizedBox(width: 10.w),
+            SizedBox(width: gap),
           ],
           label,
           if (iconWidget != null && !atStart) ...[
-            SizedBox(width: 10.w),
+            SizedBox(width: gap),
             iconWidget,
           ],
         ],

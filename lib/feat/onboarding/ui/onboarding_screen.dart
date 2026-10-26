@@ -81,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _finish() {
-    context.pushReplacementNamed(Routes.home);
+    context.pushReplacementNamed(Routes.roleSelection);
   }
 
   @override
