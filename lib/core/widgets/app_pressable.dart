@@ -6,7 +6,7 @@ class AppPressable extends StatefulWidget {
     super.key,
     required this.child,
     required this.onTap,
-    this.pressedScale = 0.94,
+    this.pressedScale = 0.97,
     this.haptic = true,
   });
 
@@ -47,8 +47,8 @@ class _AppPressableState extends State<AppPressable> {
         onTap: _active ? _handleTap : null,
         child: AnimatedScale(
           scale: _pressed ? widget.pressedScale : 1,
-          duration: Duration(milliseconds: _pressed ? 90 : 500),
-          curve: _pressed ? Curves.easeOut : Curves.elasticOut,
+          duration: Duration(milliseconds: _pressed ? 90 : 250),
+          curve: _pressed ? Curves.easeOut : Curves.easeOutBack,
           child: widget.child,
         ),
       ),

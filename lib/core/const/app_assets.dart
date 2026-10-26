@@ -8,4 +8,8 @@ class AppAssets {
   static const String onboardingPage_1 = '$_images/onboarding_page_1.png';
   static const String onboardingPage_2 = '$_images/onboarding_page_2.png';
   static const String onboardingPage_3 = '$_images/onboarding_page_3.png';
+  static const String teacher =
+      '$_images/smiling_teacher_at_the_whiteboard.png';
+  static const String student =
+      '$_images/student_studying_surrounded_by_Ideas.png';
 }
