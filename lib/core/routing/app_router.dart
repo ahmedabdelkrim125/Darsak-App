@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/routing/routes.dart';
+import 'package:darsak_app/feat/onboarding/ui/onboarding_screen.dart';
 import 'package:darsak_app/feat/splash/ui/splash_screen.dart';
-
-import '../../feat/home/ui/home_screen.dart';
 
 class AppRouter {
   AppRouter._();
@@ -14,8 +13,9 @@ class AppRouter {
           settings: settings,
           builder: (_) => const SplashScreen(),
         );
-      case Routes.home:
-        return _fadeRoute(const HomeScreen(), settings);
+      case Routes.onboarding:
+        return _fadeRoute(const OnboardingScreen(), settings);
+
       default:
         return MaterialPageRoute<void>(
           settings: settings,
