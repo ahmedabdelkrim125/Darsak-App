@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:darsak_app/feat/auth/ui/widgets/auth_card_shape.dart';
+
 import '../../../../core/helper/responsive_extension.dart';
+
+typedef AuthCardPathBuilder = Path Function(Size size);
 
 class AuthCardPainter extends CustomPainter {
   const AuthCardPainter({
     required this.fill,
     required this.border,
     required this.shadow,
+    this.pathBuilder = AuthCardShape.path,
   });
 
   final Color fill;
   final Color border;
   final Color shadow;
+  final AuthCardPathBuilder pathBuilder;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = AuthCardShape.path(size);
+    final path = pathBuilder(size);
 
     canvas.drawPath(
       path.shift(Offset(0, 8.h)),
@@ -37,6 +42,7 @@ class AuthCardPainter extends CustomPainter {
   bool shouldRepaint(covariant AuthCardPainter oldDelegate) {
     return oldDelegate.fill != fill ||
         oldDelegate.border != border ||
-        oldDelegate.shadow != shadow;
+        oldDelegate.shadow != shadow ||
+        oldDelegate.pathBuilder != pathBuilder;
   }
 }

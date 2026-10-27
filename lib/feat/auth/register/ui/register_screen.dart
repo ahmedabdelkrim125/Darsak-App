@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
 import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/routing/routes.dart';
 import 'package:darsak_app/feat/auth/register/data/register_content.dart';
+import 'package:darsak_app/feat/auth/register/ui/register_success_dialog.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_footer.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_header.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_identity_step.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_progress.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_security_step.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_student_step.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/register_teacher_step.dart';
 import 'package:darsak_app/feat/auth/ui/widgets/auth_scaffold.dart';
+
 import '../../../../core/const/student_grade.dart';
 import '../../../../core/const/user_role.dart';
-import 'widgets/register_footer.dart';
-import 'widgets/register_header.dart';
-import 'widgets/register_identity_step.dart';
-import 'widgets/register_progress.dart';
-import 'widgets/register_security_step.dart';
-import 'widgets/register_student_step.dart';
-import 'widgets/register_teacher_step.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key, required this.role});
@@ -81,11 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _submit() {
-    context.pushNamedAndRemoveUntil(
-      Routes.home,
-      arguments: widget.role,
-      predicate: (route) => false,
-    );
+    RegisterSuccessDialog.show(context, widget.role);
   }
 
   Widget _buildStep() {
