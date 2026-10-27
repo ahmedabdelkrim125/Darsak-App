@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/routing/routes.dart';
+import 'package:darsak_app/feat/auth/login/ui/login_screen.dart';
 import 'package:darsak_app/feat/onboarding/ui/onboarding_screen.dart';
 import 'package:darsak_app/feat/role_selection/ui/role_selection_screen.dart';
 import 'package:darsak_app/feat/splash/ui/splash_screen.dart';
+
+import '../const/user_role.dart';
 
 class AppRouter {
   AppRouter._();
@@ -18,6 +21,8 @@ class AppRouter {
         return _fadeRoute(const OnboardingScreen(), settings);
       case Routes.roleSelection:
         return _fadeRoute(const RoleSelectionScreen(), settings);
+      case Routes.login:
+        return _loginRoute(settings);
       // case Routes.home:
       //   return _fadeRoute(const HomeScreen(), settings);
       default:
@@ -27,6 +32,12 @@ class AppRouter {
               const Scaffold(body: Center(child: Text('الصفحة غير موجودة'))),
         );
     }
+  }
+
+  static Route<dynamic> _loginRoute(RouteSettings settings) {
+    final arguments = settings.arguments;
+    final role = arguments is UserRole ? arguments : UserRole.student;
+    return _fadeRoute(LoginScreen(role: role), settings);
   }
 
   static PageRouteBuilder<void> _fadeRoute(

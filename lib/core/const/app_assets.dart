@@ -12,4 +12,5 @@ class AppAssets {
       '$_images/smiling_teacher_at_the_whiteboard.png';
   static const String student =
       '$_images/student_studying_surrounded_by_Ideas.png';
+  static const String teacherAuth = '$_images/teacher_auth.png';
 }
