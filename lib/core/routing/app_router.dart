@@ -5,6 +5,7 @@ import 'package:darsak_app/feat/onboarding/ui/onboarding_screen.dart';
 import 'package:darsak_app/feat/role_selection/ui/role_selection_screen.dart';
 import 'package:darsak_app/feat/splash/ui/splash_screen.dart';
 
+import '../../feat/auth/register/ui/register_screen.dart';
 import '../const/user_role.dart';
 
 class AppRouter {
@@ -23,6 +24,8 @@ class AppRouter {
         return _fadeRoute(const RoleSelectionScreen(), settings);
       case Routes.login:
         return _loginRoute(settings);
+      case Routes.register:
+        return _registerRoute(settings);
       // case Routes.home:
       //   return _fadeRoute(const HomeScreen(), settings);
       default:
@@ -34,10 +37,17 @@ class AppRouter {
     }
   }
 
-  static Route<dynamic> _loginRoute(RouteSettings settings) {
+  static UserRole _roleOf(RouteSettings settings) {
     final arguments = settings.arguments;
-    final role = arguments is UserRole ? arguments : UserRole.student;
-    return _fadeRoute(LoginScreen(role: role), settings);
+    return arguments is UserRole ? arguments : UserRole.student;
+  }
+
+  static Route<dynamic> _loginRoute(RouteSettings settings) {
+    return _fadeRoute(LoginScreen(role: _roleOf(settings)), settings);
+  }
+
+  static Route<dynamic> _registerRoute(RouteSettings settings) {
+    return _fadeRoute(RegisterScreen(role: _roleOf(settings)), settings);
   }
 
   static PageRouteBuilder<void> _fadeRoute(

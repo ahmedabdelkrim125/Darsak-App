@@ -38,6 +38,10 @@ class _LoginScreenState extends State<LoginScreen> {
     context.pushReplacementNamed(Routes.home, arguments: widget.role);
   }
 
+  void _openRegister() {
+    context.pushNamed(Routes.register, arguments: widget.role);
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = LoginContent.of(widget.role);
@@ -72,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 verticalSpace(height: 10),
-                LoginActions(onLogin: _submit, onCreateAccount: () {}),
+                LoginActions(onLogin: _submit, onCreateAccount: _openRegister),
               ],
             ),
           ],
