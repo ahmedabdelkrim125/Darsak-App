@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_colors.dart';
+import '../../../../core/theme/app_colors.dart';
 
 import '../../../../core/helper/responsive_extension.dart';
 

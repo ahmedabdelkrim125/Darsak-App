@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/feat/auth/ui/widgets/auth_card_painter.dart';
-import 'package:darsak_app/feat/auth/ui/widgets/auth_card_shape.dart';
+import '../../../../core/theme/app_palette.dart';
+import 'auth_card_painter.dart';
+import 'auth_card_shape.dart';
 
 import '../../../../core/helper/responsive_extension.dart';
 

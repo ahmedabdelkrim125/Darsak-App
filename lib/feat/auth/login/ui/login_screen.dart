@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/routing/routes.dart';
-import 'package:darsak_app/feat/auth/login/data/login_content.dart';
-import 'package:darsak_app/feat/auth/login/ui/widgets/login_actions.dart';
-import 'package:darsak_app/feat/auth/login/ui/widgets/login_fields.dart';
-import 'package:darsak_app/feat/auth/login/ui/widgets/login_header.dart';
-import 'package:darsak_app/feat/auth/login/ui/widgets/login_options.dart';
-import 'package:darsak_app/feat/auth/ui/widgets/auth_scaffold.dart';
+import '../../../../core/helper/extensions.dart';
+import '../../../../core/helper/spacing.dart';
+import '../../../../core/routing/routes.dart';
+import '../data/login_content.dart';
+import 'widgets/login_actions.dart';
+import 'widgets/login_fields.dart';
+import 'widgets/login_header.dart';
+import 'widgets/login_options.dart';
+import '../../ui/widgets/auth_scaffold.dart';
 
 import '../../../../core/const/user_role.dart';
 

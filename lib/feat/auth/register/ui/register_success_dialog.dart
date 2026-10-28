@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
-import 'package:darsak_app/core/routing/routes.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/feat/auth/register/data/register_success_content.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_card.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_confetti.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_hero.dart';
+import '../../../../core/helper/extensions.dart';
+import '../../../../core/routing/routes.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../data/register_success_content.dart';
+import 'widgets/success_card.dart';
+import 'widgets/success_confetti.dart';
+import 'widgets/success_hero.dart';
 
 import '../../../../core/const/user_role.dart';
 import '../../../../core/helper/responsive_extension.dart';

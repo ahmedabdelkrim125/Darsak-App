@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_button_style.dart';
-import 'package:darsak_app/core/widgets/app_pressable.dart';
+import '../theme/app_fonts.dart';
+import '../theme/app_palette.dart';
+import 'app_button_style.dart';
+import 'app_pressable.dart';
 import '../helper/responsive_extension.dart';
 
 class AppTextButton extends StatelessWidget {

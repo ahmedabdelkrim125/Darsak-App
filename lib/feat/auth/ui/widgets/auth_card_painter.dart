@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/feat/auth/ui/widgets/auth_card_shape.dart';
+import 'auth_card_shape.dart';
 
 import '../../../../core/helper/responsive_extension.dart';
 

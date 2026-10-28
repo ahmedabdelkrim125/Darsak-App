@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/app_validators.dart';
-import 'package:darsak_app/core/widgets/app_text_field.dart';
+import '../../../../../core/helper/app_validators.dart';
+import '../../../../../core/widgets/app_text_field.dart';
 
 class LoginFields extends StatelessWidget {
   const LoginFields({

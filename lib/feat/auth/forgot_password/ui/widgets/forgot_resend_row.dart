@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_text_button.dart';
+import '../../../../../core/theme/app_fonts.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../core/widgets/app_text_button.dart';
 import '../../../../../core/helper/responsive_extension.dart';
 
 class ForgotResendRow extends StatefulWidget {

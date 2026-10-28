@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_button.dart';
-import 'package:darsak_app/core/widgets/app_text_button.dart';
+import '../../../../core/helper/spacing.dart';
+import '../../../../core/theme/app_fonts.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_text_button.dart';
 import '../../../../core/helper/responsive_extension.dart';
 
 class AuthStepFooter extends StatelessWidget {

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_button.dart';
-import 'package:darsak_app/core/widgets/app_entrance.dart';
-import 'package:darsak_app/feat/auth/register/data/register_success_content.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_card_shape.dart';
-import 'package:darsak_app/feat/auth/ui/widgets/auth_card_painter.dart';
+import '../../../../../core/helper/spacing.dart';
+import '../../../../../core/theme/app_fonts.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../core/widgets/app_button.dart';
+import '../../../../../core/widgets/app_entrance.dart';
+import '../../data/register_success_content.dart';
+import 'success_card_shape.dart';
+import '../../../ui/widgets/auth_card_painter.dart';
 
 import '../../../../../core/helper/responsive_extension.dart';
 import '../../../../../core/widgets/app_success_check.dart';

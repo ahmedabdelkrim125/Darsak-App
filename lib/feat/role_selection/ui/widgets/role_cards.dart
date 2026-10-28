@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/feat/role_selection/data/role_options.dart';
+import '../../data/role_options.dart';
 import '../../../../core/const/user_role.dart';
 import '../../../../core/helper/responsive_extension.dart';
 import 'role_card.dart';

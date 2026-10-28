@@ -1,4 +1,4 @@
-import 'package:darsak_app/feat/role_selection/data/models/role_option_model.dart';
+import 'models/role_option_model.dart';
 import '../../../core/const/app_assets.dart';
 import '../../../core/const/user_role.dart';
 

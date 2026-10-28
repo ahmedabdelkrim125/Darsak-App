@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/routing/routes.dart';
-import 'package:darsak_app/core/widgets/app_button.dart';
-import 'package:darsak_app/core/widgets/app_entrance.dart';
-import 'package:darsak_app/feat/role_selection/ui/widgets/role_cards.dart';
-import 'package:darsak_app/feat/role_selection/ui/widgets/role_header.dart';
+import '../../../core/helper/extensions.dart';
+import '../../../core/helper/spacing.dart';
+import '../../../core/routing/routes.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_entrance.dart';
+import 'widgets/role_cards.dart';
+import 'widgets/role_header.dart';
 
 import '../../../core/const/user_role.dart';
 import '../../../core/helper/responsive_extension.dart';

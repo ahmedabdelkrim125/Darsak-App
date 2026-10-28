@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_button_style.dart';
-import 'package:darsak_app/core/widgets/app_icon_button.dart';
+import '../../../../core/widgets/app_button_style.dart';
+import '../../../../core/widgets/app_icon_button.dart';
 
 class OnboardingNavButton extends StatefulWidget {
   const OnboardingNavButton({

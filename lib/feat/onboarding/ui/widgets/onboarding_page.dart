@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_texts.dart';
+import 'onboarding_scroll.dart';
+import 'onboarding_texts.dart';
 
 import '../../data/model/onboarding_model.dart';
 

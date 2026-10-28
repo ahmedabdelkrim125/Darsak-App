@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
+import 'onboarding_scroll.dart';
 
 import '../../../../core/helper/responsive_extension.dart';
 

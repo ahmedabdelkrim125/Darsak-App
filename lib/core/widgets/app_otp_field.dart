@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
+import '../theme/app_fonts.dart';
+import '../theme/app_palette.dart';
 import '../helper/responsive_extension.dart';
 
 class AppOtpField extends StatefulWidget {

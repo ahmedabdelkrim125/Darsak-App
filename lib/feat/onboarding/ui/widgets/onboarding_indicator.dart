@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_step_bar.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
+import '../../../../core/widgets/app_step_bar.dart';
+import 'onboarding_scroll.dart';
 
 class OnboardingIndicator extends StatelessWidget {
   const OnboardingIndicator({

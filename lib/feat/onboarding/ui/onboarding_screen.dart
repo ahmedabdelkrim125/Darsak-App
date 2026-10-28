@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/routing/routes.dart';
-import 'package:darsak_app/feat/onboarding/data/onboarding_items.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_actions.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_page.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_skip.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_stage.dart';
+import '../../../core/helper/extensions.dart';
+import '../../../core/helper/spacing.dart';
+import '../../../core/routing/routes.dart';
+import '../data/onboarding_items.dart';
+import 'widgets/onboarding_actions.dart';
+import 'widgets/onboarding_page.dart';
+import 'widgets/onboarding_scroll.dart';
+import 'widgets/onboarding_skip.dart';
+import 'widgets/onboarding_stage.dart';
 
 import '../../../core/helper/responsive_extension.dart';
 
