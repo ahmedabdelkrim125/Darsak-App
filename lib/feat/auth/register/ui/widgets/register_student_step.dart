@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/app_formatters.dart';
-import 'package:darsak_app/core/helper/app_validators.dart';
-import 'package:darsak_app/core/widgets/app_choice_chips.dart';
-import 'package:darsak_app/core/widgets/app_text_field.dart';
+import '../../../../../core/helper/app_formatters.dart';
+import '../../../../../core/helper/app_validators.dart';
+import '../../../../../core/widgets/app_choice_chips.dart';
+import '../../../../../core/widgets/app_text_field.dart';
 import '../../../../../core/const/student_grade.dart';
 
 class RegisterStudentStep extends StatelessWidget {

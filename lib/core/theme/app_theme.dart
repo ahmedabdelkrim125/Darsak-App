@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_colors.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
+import 'app_colors.dart';
+import 'app_fonts.dart';
+import 'app_palette.dart';
 
 class AppTheme {
   AppTheme._();

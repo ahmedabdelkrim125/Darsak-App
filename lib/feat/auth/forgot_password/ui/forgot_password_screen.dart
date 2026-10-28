@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/routing/routes.dart';
+import '../../../../core/helper/spacing.dart';
+import '../../../../core/routing/routes.dart';
 import '../../../../core/const/user_role.dart';
 import '../data/forgot_password_content.dart';
 import 'widgets/forgot_code_step.dart';

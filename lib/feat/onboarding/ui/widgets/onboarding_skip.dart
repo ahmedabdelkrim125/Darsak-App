@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_text_button.dart';
+import '../../../../core/widgets/app_text_button.dart';
 import '../../../../core/helper/responsive_extension.dart';
 
 class OnboardingSkip extends StatelessWidget {

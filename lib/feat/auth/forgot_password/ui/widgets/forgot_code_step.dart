@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_otp_field.dart';
+import '../../../../../core/widgets/app_otp_field.dart';
 
 import 'forgot_resend_row.dart';
 

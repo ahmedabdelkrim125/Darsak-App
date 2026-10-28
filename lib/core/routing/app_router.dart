@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/routing/routes.dart';
-import 'package:darsak_app/feat/auth/login/ui/login_screen.dart';
-import 'package:darsak_app/feat/auth/register/ui/register_screen.dart';
-import 'package:darsak_app/feat/onboarding/ui/onboarding_screen.dart';
-import 'package:darsak_app/feat/role_selection/ui/role_selection_screen.dart';
-import 'package:darsak_app/feat/splash/ui/splash_screen.dart';
-
+import 'routes.dart';
 import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
+import '../../feat/auth/login/ui/login_screen.dart';
+import '../../feat/auth/register/ui/register_screen.dart';
+import '../../feat/main/ui/main_screen.dart';
+import '../../feat/onboarding/ui/onboarding_screen.dart';
+import '../../feat/role_selection/ui/role_selection_screen.dart';
+import '../../feat/splash/ui/splash_screen.dart';
 import '../const/user_role.dart';
 
 class AppRouter {
@@ -32,8 +32,8 @@ class AppRouter {
           ForgotPasswordScreen(role: _roleOf(settings)),
           settings,
         );
-      // case Routes.home:
-      //   return _fadeRoute(const HomeScreen(), settings);
+      case Routes.home:
+        return _fadeRoute(MainScreen(role: _roleOf(settings)), settings);
       default:
         return MaterialPageRoute<void>(
           settings: settings,

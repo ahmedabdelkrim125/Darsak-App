@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_colors.dart';
+import 'app_colors.dart';
 
 @immutable
 class AppPalette extends ThemeExtension<AppPalette> {

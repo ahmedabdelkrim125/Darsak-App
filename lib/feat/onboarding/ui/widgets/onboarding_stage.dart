@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_reveal.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_sparkles.dart';
+import '../../../../core/theme/app_palette.dart';
+import 'onboarding_reveal.dart';
+import 'onboarding_scroll.dart';
+import 'onboarding_sparkles.dart';
 import '../../../../core/helper/responsive_extension.dart';
 
 class OnboardingStage extends StatelessWidget {

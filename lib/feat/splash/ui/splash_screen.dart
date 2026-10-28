@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:darsak_app/core/helper/extensions.dart';
-import 'package:darsak_app/core/routing/routes.dart';
+import '../../../core/helper/extensions.dart';
+import '../../../core/routing/routes.dart';
 
 import 'widgets/splash_background.dart';
 import 'widgets/splash_logo.dart';

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_success_check_painters.dart';
+import '../theme/app_palette.dart';
+import 'app_success_check_painters.dart';
 import '../helper/responsive_extension.dart';
 
 class AppSuccessCheck extends StatelessWidget {

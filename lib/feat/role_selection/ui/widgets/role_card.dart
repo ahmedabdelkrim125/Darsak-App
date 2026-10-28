@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_pressable.dart';
-import 'package:darsak_app/feat/role_selection/data/models/role_option_model.dart';
+import '../../../../core/helper/spacing.dart';
+import '../../../../core/theme/app_fonts.dart';
+import '../../../../core/theme/app_palette.dart';
+import '../../../../core/widgets/app_pressable.dart';
+import '../../data/models/role_option_model.dart';
 import '../../../../core/helper/responsive_extension.dart';
 
 class RoleCard extends StatelessWidget {

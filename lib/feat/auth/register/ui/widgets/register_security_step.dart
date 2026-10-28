@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/app_validators.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/core/widgets/app_checkbox.dart';
-import 'package:darsak_app/core/widgets/app_text_field.dart';
+import '../../../../../core/helper/app_validators.dart';
+import '../../../../../core/theme/app_fonts.dart';
+import '../../../../../core/theme/app_palette.dart';
+import '../../../../../core/widgets/app_checkbox.dart';
+import '../../../../../core/widgets/app_text_field.dart';
 import '../../../../../core/helper/responsive_extension.dart';
 
 class RegisterSecurityStep extends StatelessWidget {

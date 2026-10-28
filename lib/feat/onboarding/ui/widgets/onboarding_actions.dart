@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_button_style.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_indicator.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_nav_button.dart';
-import 'package:darsak_app/feat/onboarding/ui/widgets/onboarding_scroll.dart';
+import '../../../../core/widgets/app_button_style.dart';
+import 'onboarding_indicator.dart';
+import 'onboarding_nav_button.dart';
+import 'onboarding_scroll.dart';
 
 import '../../../../core/helper/responsive_extension.dart';
 

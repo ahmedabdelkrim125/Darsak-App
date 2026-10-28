@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/helper/spacing.dart';
-import 'package:darsak_app/core/theme/app_fonts.dart';
-import 'package:darsak_app/core/theme/app_palette.dart';
+import '../../../../core/helper/spacing.dart';
+import '../../../../core/theme/app_fonts.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../../../core/const/app_assets.dart';
 import '../../../../core/helper/responsive_extension.dart';
 

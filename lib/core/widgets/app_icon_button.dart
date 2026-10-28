@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:darsak_app/core/widgets/app_button_style.dart';
-import 'package:darsak_app/core/widgets/app_pressable.dart';
+import 'app_button_style.dart';
+import 'app_pressable.dart';
 
 import '../helper/responsive_extension.dart';
 
