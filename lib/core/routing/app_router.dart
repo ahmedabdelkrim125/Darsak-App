@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/routing/routes.dart';
 import 'package:darsak_app/feat/auth/login/ui/login_screen.dart';
+import 'package:darsak_app/feat/auth/register/ui/register_screen.dart';
 import 'package:darsak_app/feat/onboarding/ui/onboarding_screen.dart';
 import 'package:darsak_app/feat/role_selection/ui/role_selection_screen.dart';
 import 'package:darsak_app/feat/splash/ui/splash_screen.dart';
 
-import '../../feat/auth/register/ui/register_screen.dart';
+import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
 import '../const/user_role.dart';
 
 class AppRouter {
@@ -23,9 +24,14 @@ class AppRouter {
       case Routes.roleSelection:
         return _fadeRoute(const RoleSelectionScreen(), settings);
       case Routes.login:
-        return _loginRoute(settings);
+        return _fadeRoute(LoginScreen(role: _roleOf(settings)), settings);
       case Routes.register:
-        return _registerRoute(settings);
+        return _fadeRoute(RegisterScreen(role: _roleOf(settings)), settings);
+      case Routes.forgotPassword:
+        return _fadeRoute(
+          ForgotPasswordScreen(role: _roleOf(settings)),
+          settings,
+        );
       // case Routes.home:
       //   return _fadeRoute(const HomeScreen(), settings);
       default:
@@ -40,14 +46,6 @@ class AppRouter {
   static UserRole _roleOf(RouteSettings settings) {
     final arguments = settings.arguments;
     return arguments is UserRole ? arguments : UserRole.student;
-  }
-
-  static Route<dynamic> _loginRoute(RouteSettings settings) {
-    return _fadeRoute(LoginScreen(role: _roleOf(settings)), settings);
-  }
-
-  static Route<dynamic> _registerRoute(RouteSettings settings) {
-    return _fadeRoute(RegisterScreen(role: _roleOf(settings)), settings);
   }
 
   static PageRouteBuilder<void> _fadeRoute(

@@ -4,19 +4,25 @@ import 'package:darsak_app/core/theme/app_fonts.dart';
 import 'package:darsak_app/core/theme/app_palette.dart';
 import 'package:darsak_app/core/widgets/app_button.dart';
 import 'package:darsak_app/core/widgets/app_text_button.dart';
-import '../../../../../core/helper/responsive_extension.dart';
+import '../../../../core/helper/responsive_extension.dart';
 
-class RegisterFooter extends StatelessWidget {
-  const RegisterFooter({
+class AuthStepFooter extends StatelessWidget {
+  const AuthStepFooter({
     super.key,
-    required this.isLast,
-    required this.onNext,
-    required this.onLogin,
+    required this.label,
+    required this.onPressed,
+    required this.prompt,
+    required this.linkLabel,
+    required this.onLink,
+    this.isLoading = false,
   });
 
-  final bool isLast;
-  final VoidCallback onNext;
-  final VoidCallback onLogin;
+  final String label;
+  final VoidCallback onPressed;
+  final String prompt;
+  final String linkLabel;
+  final VoidCallback onLink;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -26,23 +32,24 @@ class RegisterFooter extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         AppButton(
-          label: isLast ? 'إنشاء الحساب' : 'التالي',
+          label: label,
           expanded: true,
           radius: 16.r,
           height: 52.h,
-          onPressed: onNext,
+          isLoading: isLoading,
+          onPressed: onPressed,
         ),
         verticalSpace(height: 6),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'لديك حساب بالفعل؟',
+              prompt,
               style: AppFonts.bodySmall.copyWith(color: palette.textSecondary),
             ),
             AppTextButton(
-              label: 'تسجيل الدخول',
-              onPressed: onLogin,
+              label: linkLabel,
+              onPressed: onLink,
               color: palette.primary,
               style: AppFonts.labelMedium,
               padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 6.h),

@@ -1,4 +1,3 @@
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_card_shape.dart';
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/helper/spacing.dart';
 import 'package:darsak_app/core/theme/app_fonts.dart';
@@ -6,9 +5,11 @@ import 'package:darsak_app/core/theme/app_palette.dart';
 import 'package:darsak_app/core/widgets/app_button.dart';
 import 'package:darsak_app/core/widgets/app_entrance.dart';
 import 'package:darsak_app/feat/auth/register/data/register_success_content.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_check.dart';
+import 'package:darsak_app/feat/auth/register/ui/widgets/success_card_shape.dart';
 import 'package:darsak_app/feat/auth/ui/widgets/auth_card_painter.dart';
+
 import '../../../../../core/helper/responsive_extension.dart';
+import '../../../../../core/widgets/app_success_check.dart';
 
 class SuccessCard extends StatelessWidget {
   const SuccessCard({
@@ -40,7 +41,7 @@ class SuccessCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SuccessCheck(intro: intro, loop: loop),
+            AppSuccessCheck(intro: intro, loop: loop),
             verticalSpace(height: 14),
             AppEntrance(
               animation: intro,

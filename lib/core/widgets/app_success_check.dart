@@ -1,11 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/theme/app_palette.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/success_check_painters.dart';
-import '../../../../../core/helper/responsive_extension.dart';
+import 'package:darsak_app/core/widgets/app_success_check_painters.dart';
+import '../helper/responsive_extension.dart';
 
-class SuccessCheck extends StatelessWidget {
-  const SuccessCheck({
+class AppSuccessCheck extends StatelessWidget {
+  const AppSuccessCheck({
     super.key,
     required this.intro,
     required this.loop,
@@ -17,9 +17,17 @@ class SuccessCheck extends StatelessWidget {
   final double? size;
 
   static const Interval _pop = Interval(0.10, 0.42, curve: Curves.elasticOut);
-  static const Interval _draw = Interval(0.30, 0.55, curve: Curves.easeOutCubic);
+  static const Interval _draw = Interval(
+    0.30,
+    0.55,
+    curve: Curves.easeOutCubic,
+  );
   static const Interval _ring = Interval(0.28, 0.65, curve: Curves.easeOut);
-  static const Interval _rays = Interval(0.34, 0.75, curve: Curves.easeOutCubic);
+  static const Interval _rays = Interval(
+    0.34,
+    0.75,
+    curve: Curves.easeOutCubic,
+  );
 
   @override
   Widget build(BuildContext context) {

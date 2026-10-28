@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:darsak_app/core/helper/spacing.dart';
 import 'package:darsak_app/feat/auth/register/data/register_content.dart';
 import 'package:darsak_app/feat/auth/register/ui/register_success_dialog.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/register_footer.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/register_header.dart';
 import 'package:darsak_app/feat/auth/register/ui/widgets/register_identity_step.dart';
-import 'package:darsak_app/feat/auth/register/ui/widgets/register_progress.dart';
 import 'package:darsak_app/feat/auth/register/ui/widgets/register_security_step.dart';
 import 'package:darsak_app/feat/auth/register/ui/widgets/register_student_step.dart';
 import 'package:darsak_app/feat/auth/register/ui/widgets/register_teacher_step.dart';
 import 'package:darsak_app/feat/auth/ui/widgets/auth_scaffold.dart';
-
+import 'package:darsak_app/feat/auth/ui/widgets/auth_step_footer.dart';
+import 'package:darsak_app/feat/auth/ui/widgets/auth_step_header.dart';
+import 'package:darsak_app/feat/auth/ui/widgets/auth_step_progress.dart';
+import 'package:darsak_app/feat/auth/ui/widgets/auth_step_switcher.dart';
 import '../../../../core/const/student_grade.dart';
 import '../../../../core/const/user_role.dart';
 
@@ -132,50 +132,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                RegisterHeader(
+                AuthStepHeader(
                   title: content.title,
                   subtitle: content.subtitles[_step],
                 ),
                 verticalSpace(height: 8),
-                RegisterProgress(count: _stepCount, step: _step),
+                AuthStepProgress(count: _stepCount, step: _step),
                 verticalSpace(height: 10),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 320),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  layoutBuilder: (current, previous) {
-                    return Stack(
-                      alignment: Alignment.topCenter,
-                      children: [...previous, ?current],
-                    );
-                  },
-                  transitionBuilder: (child, animation) {
-                    final entering = child.key == ValueKey<int>(_step);
-                    final side = entering
-                        ? (_forward ? 1.0 : -1.0)
-                        : (_forward ? -1.0 : 1.0);
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: Offset(0.15 * side, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: KeyedSubtree(
-                    key: ValueKey<int>(_step),
-                    child: _buildStep(),
-                  ),
+                AuthStepSwitcher(
+                  step: _step,
+                  forward: _forward,
+                  child: _buildStep(),
                 ),
               ],
             ),
-            RegisterFooter(
-              isLast: _step == _stepCount - 1,
-              onNext: _next,
-              onLogin: () => Navigator.of(context).maybePop(),
+            AuthStepFooter(
+              label: _step == _stepCount - 1 ? 'إنشاء الحساب' : 'التالي',
+              onPressed: _next,
+              prompt: 'لديك حساب بالفعل؟',
+              linkLabel: 'تسجيل الدخول',
+              onLink: () => Navigator.of(context).maybePop(),
             ),
           ],
         ),

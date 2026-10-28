@@ -3,8 +3,8 @@ import 'package:darsak_app/core/helper/spacing.dart';
 import 'package:darsak_app/core/theme/app_fonts.dart';
 import 'package:darsak_app/core/theme/app_palette.dart';
 
-class RegisterHeader extends StatelessWidget {
-  const RegisterHeader({
+class AuthStepHeader extends StatelessWidget {
+  const AuthStepHeader({
     super.key,
     required this.title,
     required this.subtitle,
@@ -20,10 +20,14 @@ class RegisterHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: AppFonts.headlineLarge.copyWith(color: palette.textPrimary),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: Text(
+            title,
+            key: ValueKey(title),
+            textAlign: TextAlign.center,
+            style: AppFonts.headlineLarge.copyWith(color: palette.textPrimary),
+          ),
         ),
         verticalSpace(height: 4),
         AnimatedSwitcher(

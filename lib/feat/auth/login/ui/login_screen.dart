@@ -8,6 +8,7 @@ import 'package:darsak_app/feat/auth/login/ui/widgets/login_fields.dart';
 import 'package:darsak_app/feat/auth/login/ui/widgets/login_header.dart';
 import 'package:darsak_app/feat/auth/login/ui/widgets/login_options.dart';
 import 'package:darsak_app/feat/auth/ui/widgets/auth_scaffold.dart';
+
 import '../../../../core/const/user_role.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -42,6 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
     context.pushNamed(Routes.register, arguments: widget.role);
   }
 
+  void _openForgotPassword() {
+    context.pushNamed(Routes.forgotPassword, arguments: widget.role);
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = LoginContent.of(widget.role);
@@ -68,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   remember: _remember,
                   onRememberChanged: (value) =>
                       setState(() => _remember = value),
-                  onForgotPassword: () {},
+                  onForgotPassword: _openForgotPassword,
                 ),
               ],
             ),

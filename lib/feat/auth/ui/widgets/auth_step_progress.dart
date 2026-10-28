@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:darsak_app/core/widgets/app_step_bar.dart';
-import '../../../../../core/helper/responsive_extension.dart';
+import '../../../../core/helper/responsive_extension.dart';
 
-class RegisterProgress extends StatelessWidget {
-  const RegisterProgress({super.key, required this.count, required this.step});
+class AuthStepProgress extends StatelessWidget {
+  const AuthStepProgress({super.key, required this.count, required this.step});
 
   final int count;
   final int step;
