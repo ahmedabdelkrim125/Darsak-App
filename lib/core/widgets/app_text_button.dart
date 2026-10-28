@@ -3,7 +3,6 @@ import 'package:darsak_app/core/theme/app_fonts.dart';
 import 'package:darsak_app/core/theme/app_palette.dart';
 import 'package:darsak_app/core/widgets/app_button_style.dart';
 import 'package:darsak_app/core/widgets/app_pressable.dart';
-
 import '../helper/responsive_extension.dart';
 
 class AppTextButton extends StatelessWidget {
@@ -16,6 +15,7 @@ class AppTextButton extends StatelessWidget {
     this.color,
     this.style,
     this.underlined = false,
+    this.padding,
   });
 
   final String label;
@@ -25,6 +25,7 @@ class AppTextButton extends StatelessWidget {
   final Color? color;
   final TextStyle? style;
   final bool underlined;
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +44,8 @@ class AppTextButton extends StatelessWidget {
       onTap: onPressed,
       pressedScale: 0.93,
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        padding:
+            padding ?? EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

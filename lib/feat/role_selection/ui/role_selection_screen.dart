@@ -4,8 +4,8 @@ import 'package:darsak_app/core/helper/extensions.dart';
 import 'package:darsak_app/core/helper/spacing.dart';
 import 'package:darsak_app/core/routing/routes.dart';
 import 'package:darsak_app/core/widgets/app_button.dart';
+import 'package:darsak_app/core/widgets/app_entrance.dart';
 import 'package:darsak_app/feat/role_selection/ui/widgets/role_cards.dart';
-import 'package:darsak_app/feat/role_selection/ui/widgets/role_entrance.dart';
 import 'package:darsak_app/feat/role_selection/ui/widgets/role_header.dart';
 
 import '../../../core/const/user_role.dart';
@@ -45,7 +45,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
   void _continue() {
     final role = _selected;
     if (role == null) return;
-    context.pushReplacementNamed(Routes.home, arguments: role);
+    context.pushNamed(Routes.login, arguments: role);
   }
 
   @override
@@ -68,13 +68,12 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                       child: Column(
                         children: [
                           verticalSpace(height: 24),
-                          RoleEntrance(
+                          AppEntrance(
                             animation: _intro,
-                            begin: 0,
                             child: const RoleHeader(),
                           ),
                           verticalSpace(height: 28),
-                          RoleEntrance(
+                          AppEntrance(
                             animation: _intro,
                             begin: 0.25,
                             child: RoleCards(
@@ -87,7 +86,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen>
                       ),
                     ),
                   ),
-                  RoleEntrance(
+                  AppEntrance(
                     animation: _intro,
                     begin: 0.5,
                     child: AppButton(
