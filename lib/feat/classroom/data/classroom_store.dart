@@ -27,6 +27,22 @@ class ClassroomStore extends ChangeNotifier {
     return List.unmodifiable(_groups.where((group) => _visible(group.subject)));
   }
 
+  int get studentsTotal {
+    return groups.fold(0, (total, group) => total + group.students.length);
+  }
+
+  int get weeklyLessonsCount {
+    return _lessons
+        .where((lesson) => _visible(lesson.subject))
+        .fold(0, (total, lesson) => total + lesson.weekdays.length);
+  }
+
+  int weeklyLessonsOf(String groupId) {
+    return _lessons
+        .where((lesson) => lesson.groupId == groupId)
+        .fold(0, (total, lesson) => total + lesson.weekdays.length);
+  }
+
   ClassroomGroup? groupById(String id) {
     for (final group in _groups) {
       if (group.id == id) return group;
@@ -56,6 +72,7 @@ class ClassroomStore extends ChangeNotifier {
     required String name,
     required SchoolYear year,
     required String subject,
+    required int monthlyFee,
   }) {
     final cleanName = name.trim();
     final exists = _groups.any(
@@ -71,10 +88,17 @@ class ClassroomStore extends ChangeNotifier {
         name: cleanName,
         subject: subject,
         year: year,
+        monthlyFee: monthlyFee,
       ),
     );
     notifyListeners();
     return null;
+  }
+
+  void deleteGroup(String id) {
+    _groups.removeWhere((group) => group.id == id);
+    _lessons.removeWhere((lesson) => lesson.groupId == id);
+    notifyListeners();
   }
 
   String? addStudent({
@@ -98,6 +122,18 @@ class ClassroomStore extends ChangeNotifier {
     _groups[index] = group.copyWith(students: [...group.students, student]);
     notifyListeners();
     return null;
+  }
+
+  void removeStudent({required String groupId, required String studentId}) {
+    final index = _groups.indexWhere((group) => group.id == groupId);
+    if (index == -1) return;
+    final group = _groups[index];
+    _groups[index] = group.copyWith(
+      students: group.students
+          .where((student) => student.id != studentId)
+          .toList(),
+    );
+    notifyListeners();
   }
 
   String? addLesson({

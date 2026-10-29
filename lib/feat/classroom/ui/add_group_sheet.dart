@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/const/school_year.dart';
 import '../../../core/const/student_grade.dart';
 import '../../../core/helper/app_validators.dart';
@@ -33,6 +34,7 @@ class AddGroupSheet extends StatefulWidget {
 class _AddGroupSheetState extends State<AddGroupSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _name = TextEditingController();
+  final TextEditingController _fee = TextEditingController();
   final TextEditingController _subject = TextEditingController();
   final bool _needsSubject = !AppSession.instance.hasSubject;
   StudentGrade? _stage;
@@ -42,6 +44,7 @@ class _AddGroupSheetState extends State<AddGroupSheet> {
   @override
   void dispose() {
     _name.dispose();
+    _fee.dispose();
     _subject.dispose();
     super.dispose();
   }
@@ -58,13 +61,15 @@ class _AddGroupSheetState extends State<AddGroupSheet> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final year = _year;
-    if (year == null) return;
+    final fee = int.tryParse(_fee.text.trim());
+    if (year == null || fee == null) return;
     final session = AppSession.instance;
     if (_needsSubject) session.updateSubject(_subject.text);
     final error = ClassroomStore.instance.addGroup(
       name: _name.text,
       year: year,
       subject: session.subject,
+      monthlyFee: fee,
     );
     if (error != null) {
       setState(() => _error = error);
@@ -112,9 +117,26 @@ class _AddGroupSheetState extends State<AddGroupSheet> {
             controller: _name,
             hintText: 'اسم المجموعة (مثال: مجموعة أ)',
             prefixIcon: Icons.groups_outlined,
-            textInputAction: TextInputAction.done,
+            textInputAction: TextInputAction.next,
             validator: (value) =>
                 AppValidators.required(value, message: 'أدخل اسم المجموعة'),
+            reserveErrorSpace: true,
+          ),
+          AppTextField(
+            controller: _fee,
+            hintText: 'سعر الشهر للطالب (جنيه)',
+            prefixIcon: Icons.payments_outlined,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6),
+            ],
+            validator: (value) {
+              final amount = int.tryParse(value?.trim() ?? '');
+              if (amount == null || amount <= 0) return 'أدخل سعر الشهر';
+              return null;
+            },
             reserveErrorSpace: true,
           ),
           const SheetLabel('المرحلة الدراسية'),
@@ -125,8 +147,7 @@ class _AddGroupSheetState extends State<AddGroupSheet> {
             ],
             value: _stage,
             onChanged: _onStageChanged,
-            validator: (value) =>
-                value == null ? 'اختر المرحلة الدراسية' : null,
+            validator: (value) => value == null ? 'اختر المرحلة الدراسية' : null,
             reserveErrorSpace: true,
           ),
           if (stage != null && stage != StudentGrade.university) ...[
