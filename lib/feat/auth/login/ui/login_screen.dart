@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../../../../core/helper/extensions.dart';
 import '../../../../core/helper/spacing.dart';
 import '../../../../core/routing/routes.dart';
+import '../../../../core/session/app_session.dart';
+import '../../widgets/auth_scaffold.dart';
 import '../data/login_content.dart';
 import 'widgets/login_actions.dart';
 import 'widgets/login_fields.dart';
 import 'widgets/login_header.dart';
 import 'widgets/login_options.dart';
-import '../../widgets/auth_scaffold.dart';
-
 import '../../../../core/const/user_role.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -36,6 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void _submit() {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    AppSession.instance.signIn(role: widget.role);
     context.pushReplacementNamed(Routes.home, arguments: widget.role);
   }
 

@@ -7,11 +7,11 @@ class HomeQuickActions extends StatelessWidget {
   const HomeQuickActions({
     super.key,
     required this.actions,
-    required this.onTap,
+    required this.onSelected,
   });
 
   final List<HomeQuickActionModel> actions;
-  final VoidCallback onTap;
+  final ValueChanged<HomeQuickActionId> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +20,10 @@ class HomeQuickActions extends StatelessWidget {
         for (var i = 0; i < actions.length; i++) ...[
           if (i > 0) horizontalSpace(width: 10),
           Expanded(
-            child: HomeQuickActionItem(action: actions[i], onTap: onTap),
+            child: HomeQuickActionItem(
+              action: actions[i],
+              onTap: () => onSelected(actions[i].id),
+            ),
           ),
         ],
       ],

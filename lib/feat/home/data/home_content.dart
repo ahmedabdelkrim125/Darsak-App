@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-
+import 'package:flutter/painting.dart';
 import '../../../core/theme/app_colors.dart';
 import 'home_icons.dart';
 import 'models/home_file_model.dart';
-import 'models/home_lesson_model.dart';
 import 'models/home_quick_action_model.dart';
 import 'models/home_tone.dart';
 
@@ -20,53 +18,36 @@ class HomeContent {
 
   static const String lessonsTitle = 'حصص اليوم';
   static const String lessonsAction = 'عرض الجدول الكامل';
+  static const String lessonsEmpty = 'لا توجد حصص اليوم';
+  static const String lessonsEmptyAction = 'إضافة حصة';
   static const String filesTitle = 'أحدث الملفات';
   static const String filesAction = 'عرض الكل';
+  static const String comingSoon = 'هذه الميزة قريباً';
 
   static const List<HomeQuickActionModel> quickActions = [
     HomeQuickActionModel(
+      id: HomeQuickActionId.addLesson,
       label: 'إضافة حصة',
       icon: HomeIcons.addLesson,
       tone: HomeTone.primary,
     ),
     HomeQuickActionModel(
+      id: HomeQuickActionId.addGroup,
       label: 'إضافة مجموعة',
       icon: HomeIcons.addGroup,
       tone: HomeTone.accent,
     ),
     HomeQuickActionModel(
+      id: HomeQuickActionId.addStudent,
       label: 'إضافة طالب',
       icon: HomeIcons.addStudent,
       tone: HomeTone.primary,
     ),
     HomeQuickActionModel(
+      id: HomeQuickActionId.uploadContent,
       label: 'رفع محتوى',
       icon: HomeIcons.uploadContent,
       tone: HomeTone.accent,
-    ),
-  ];
-
-  static const List<HomeLessonModel> lessons = [
-    HomeLessonModel(
-      title: 'الرياضيات - مجموعة أ',
-      grade: 'الصف الأول الثانوي',
-      studentsCount: 12,
-      time: '10:00 ص',
-      tone: HomeTone.primary,
-    ),
-    HomeLessonModel(
-      title: 'الفيزياء - مجموعة ب',
-      grade: 'الصف الثالث الثانوي',
-      studentsCount: 15,
-      time: '12:30 م',
-      tone: HomeTone.accent,
-    ),
-    HomeLessonModel(
-      title: 'مراجعة شاملة',
-      grade: 'الصف الثالث الثانوي',
-      studentsCount: 20,
-      time: '4:00 م',
-      tone: HomeTone.violet,
     ),
   ];
 

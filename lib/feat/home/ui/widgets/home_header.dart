@@ -8,8 +8,13 @@ import '../../data/home_icons.dart';
 import 'home_notification_button.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key, required this.onNotifications});
+  const HomeHeader({
+    super.key,
+    required this.name,
+    required this.onNotifications,
+  });
 
+  final String name;
   final VoidCallback onNotifications;
 
   @override
@@ -42,7 +47,7 @@ class HomeHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'مرحباً ${HomeContent.userName} 👋',
+                'مرحباً $name 👋',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppFonts.headlineMedium.copyWith(
