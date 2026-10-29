@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_fonts.dart';
-import '../../../../core/theme/app_palette.dart';
-import '../../../../core/helper/responsive_extension.dart';
+import '../../../core/theme/app_fonts.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../../core/helper/responsive_extension.dart';
 
 class AuthDivider extends StatelessWidget {
   const AuthDivider({super.key, required this.label});

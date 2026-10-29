@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth_card_shape.dart';
 
-import '../../../../core/helper/responsive_extension.dart';
+import '../../../core/helper/responsive_extension.dart';
 
 typedef AuthCardPathBuilder = Path Function(Size size);
 

@@ -3,7 +3,7 @@ import '../../../../../core/helper/spacing.dart';
 import '../../../../../core/theme/app_palette.dart';
 import '../../../../../core/widgets/app_button.dart';
 import '../../../../../core/widgets/app_button_style.dart';
-import '../../../ui/widgets/auth_divider.dart';
+import '../../../widgets/auth_divider.dart';
 import '../../../../../core/helper/responsive_extension.dart';
 
 class LoginActions extends StatelessWidget {

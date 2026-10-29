@@ -7,11 +7,11 @@ import 'widgets/forgot_code_step.dart';
 import 'widgets/forgot_email_step.dart';
 import 'widgets/forgot_password_step.dart';
 import 'widgets/forgot_success_view.dart';
-import '../../ui/widgets/auth_scaffold.dart';
-import '../../ui/widgets/auth_step_footer.dart';
-import '../../ui/widgets/auth_step_header.dart';
-import '../../ui/widgets/auth_step_progress.dart';
-import '../../ui/widgets/auth_step_switcher.dart';
+import '../../widgets/auth_scaffold.dart';
+import '../../widgets/auth_step_footer.dart';
+import '../../widgets/auth_step_header.dart';
+import '../../widgets/auth_step_progress.dart';
+import '../../widgets/auth_step_switcher.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key, required this.role});

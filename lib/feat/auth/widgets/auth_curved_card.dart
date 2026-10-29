@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_palette.dart';
+import '../../../core/theme/app_palette.dart';
 import 'auth_card_painter.dart';
 import 'auth_card_shape.dart';
 
-import '../../../../core/helper/responsive_extension.dart';
+import '../../../core/helper/responsive_extension.dart';
 
 class AuthCurvedCard extends StatelessWidget {
   const AuthCurvedCard({super.key, required this.child, this.padding});

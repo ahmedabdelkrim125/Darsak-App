@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/helper/responsive_extension.dart';
+import '../../../core/helper/responsive_extension.dart';
 
 class AuthCardShape {
   AuthCardShape._();

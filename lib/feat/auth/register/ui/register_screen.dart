@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../../core/helper/spacing.dart';
+import '../../../../core/session/app_session.dart';
+import '../../widgets/auth_scaffold.dart';
+import '../../widgets/auth_step_footer.dart';
+import '../../widgets/auth_step_header.dart';
+import '../../widgets/auth_step_progress.dart';
+import '../../widgets/auth_step_switcher.dart';
 import '../data/register_content.dart';
 import 'register_success_dialog.dart';
 import 'widgets/register_identity_step.dart';
 import 'widgets/register_security_step.dart';
 import 'widgets/register_student_step.dart';
 import 'widgets/register_teacher_step.dart';
-import '../../ui/widgets/auth_scaffold.dart';
-import '../../ui/widgets/auth_step_footer.dart';
-import '../../ui/widgets/auth_step_header.dart';
-import '../../ui/widgets/auth_step_progress.dart';
-import '../../ui/widgets/auth_step_switcher.dart';
 import '../../../../core/const/student_grade.dart';
 import '../../../../core/const/user_role.dart';
 
@@ -81,6 +82,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _submit() {
+    AppSession.instance.signIn(
+      role: widget.role,
+      fullName: _fullName.text,
+      username: _username.text,
+      subject: _isTeacher ? _subject.text : null,
+    );
     RegisterSuccessDialog.show(context, widget.role);
   }
 

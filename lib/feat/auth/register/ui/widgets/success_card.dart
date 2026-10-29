@@ -6,7 +6,7 @@ import '../../../../../core/widgets/app_button.dart';
 import '../../../../../core/widgets/app_entrance.dart';
 import '../../data/register_success_content.dart';
 import 'success_card_shape.dart';
-import '../../../ui/widgets/auth_card_painter.dart';
+import '../../../widgets/auth_card_painter.dart';
 
 import '../../../../../core/helper/responsive_extension.dart';
 import '../../../../../core/widgets/app_success_check.dart';
