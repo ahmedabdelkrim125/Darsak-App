@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
+import '../../groups/ui/groups_screen.dart';
 import '../data/models/main_tab_model.dart';
 import 'widgets/main_ambient_background.dart';
 import 'widgets/main_tab_placeholder.dart';
@@ -40,7 +41,7 @@ class _MainScreenState extends State<MainScreen> {
     return switch (tab.id) {
       MainTabId.home when _isTeacher => const HomeScreen(),
       MainTabId.schedule when _isTeacher => const ScheduleScreen(),
-      // MainTabId.groups when _isTeacher => const GroupsScreen(),
+      MainTabId.groups when _isTeacher => const GroupsScreen(),
       MainTabId.home ||
       MainTabId.schedule ||
       MainTabId.groups => MainTabPlaceholder(tab: tab),
