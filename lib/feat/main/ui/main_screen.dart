@@ -7,6 +7,7 @@ import '../data/models/main_tab_model.dart';
 import 'widgets/main_ambient_background.dart';
 
 import '../../../core/const/user_role.dart';
+import '../../home/ui/home_screen.dart';
 import '../data/models/main_tabs.dart';
 
 class MainScreen extends StatefulWidget {
@@ -50,8 +51,9 @@ class _MainScreenState extends State<MainScreen> {
                 Positioned.fill(
                   child: _MainPage(
                     selected: i == _index,
-                    // هنبدل ده بالصفحات الحقيقية صفحة صفحة
-                    child: const SizedBox.expand(),
+                    child: _tabs[i].id == MainTabId.home
+                        ? const HomeScreen()
+                        : const SizedBox.expand(),
                   ),
                 ),
           ],

@@ -6,11 +6,11 @@ import 'widgets/register_identity_step.dart';
 import 'widgets/register_security_step.dart';
 import 'widgets/register_student_step.dart';
 import 'widgets/register_teacher_step.dart';
-import '../../ui/widgets/auth_scaffold.dart';
-import '../../ui/widgets/auth_step_footer.dart';
-import '../../ui/widgets/auth_step_header.dart';
-import '../../ui/widgets/auth_step_progress.dart';
-import '../../ui/widgets/auth_step_switcher.dart';
+import '../../widgets/auth_scaffold.dart';
+import '../../widgets/auth_step_footer.dart';
+import '../../widgets/auth_step_header.dart';
+import '../../widgets/auth_step_progress.dart';
+import '../../widgets/auth_step_switcher.dart';
 import '../../../../core/const/student_grade.dart';
 import '../../../../core/const/user_role.dart';
 

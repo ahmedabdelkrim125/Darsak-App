@@ -7,7 +7,7 @@ import 'widgets/login_actions.dart';
 import 'widgets/login_fields.dart';
 import 'widgets/login_header.dart';
 import 'widgets/login_options.dart';
-import '../../ui/widgets/auth_scaffold.dart';
+import '../../widgets/auth_scaffold.dart';
 
 import '../../../../core/const/user_role.dart';
 

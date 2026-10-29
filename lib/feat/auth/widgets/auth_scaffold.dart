@@ -1,13 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../../core/theme/app_fonts.dart';
-import '../../../../core/theme/app_palette.dart';
-import '../../../../core/widgets/app_entrance.dart';
-import '../../../../core/widgets/app_pressable.dart';
+import '../../../core/theme/app_fonts.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../../core/widgets/app_entrance.dart';
+import '../../../core/widgets/app_pressable.dart';
 import 'auth_curved_card.dart';
-import '../../../../core/const/app_assets.dart';
-import '../../../../core/helper/responsive_extension.dart';
+import '../../../core/const/app_assets.dart';
+import '../../../core/helper/responsive_extension.dart';
 
 class AuthScaffold extends StatefulWidget {
   const AuthScaffold({
