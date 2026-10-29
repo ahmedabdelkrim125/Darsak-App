@@ -5,9 +5,10 @@ import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
 import '../data/models/main_tab_model.dart';
 import 'widgets/main_ambient_background.dart';
-
+import 'widgets/main_tab_placeholder.dart';
 import '../../../core/const/user_role.dart';
 import '../../home/ui/home_screen.dart';
+import '../../schedule/ui/schedule_screen.dart';
 import '../data/models/main_tabs.dart';
 
 class MainScreen extends StatefulWidget {
@@ -24,6 +25,8 @@ class _MainScreenState extends State<MainScreen> {
   final Set<int> _visited = {0};
   int _index = 0;
 
+  bool get _isTeacher => widget.role == UserRole.teacher;
+
   void _select(int value) {
     if (value == _index) return;
     HapticFeedback.selectionClick();
@@ -31,6 +34,18 @@ class _MainScreenState extends State<MainScreen> {
       _index = value;
       _visited.add(value);
     });
+  }
+
+  Widget _pageFor(MainTabModel tab) {
+    return switch (tab.id) {
+      MainTabId.home when _isTeacher => const HomeScreen(),
+      MainTabId.schedule when _isTeacher => const ScheduleScreen(),
+      // MainTabId.groups when _isTeacher => const GroupsScreen(),
+      MainTabId.home ||
+      MainTabId.schedule ||
+      MainTabId.groups => MainTabPlaceholder(tab: tab),
+      _ => const SizedBox.expand(),
+    };
   }
 
   @override
@@ -49,11 +64,10 @@ class _MainScreenState extends State<MainScreen> {
             for (var i = 0; i < _tabs.length; i++)
               if (_visited.contains(i))
                 Positioned.fill(
+                  key: ValueKey(_tabs[i].id),
                   child: _MainPage(
                     selected: i == _index,
-                    child: _tabs[i].id == MainTabId.home
-                        ? const HomeScreen()
-                        : const SizedBox.expand(),
+                    child: _pageFor(_tabs[i]),
                   ),
                 ),
           ],
@@ -100,16 +114,13 @@ class _MainPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TickerMode(
-      enabled: selected,
-      child: IgnorePointer(
-        ignoring: !selected,
-        child: AnimatedOpacity(
-          opacity: selected ? 1 : 0,
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          child: child,
-        ),
+    return AnimatedOpacity(
+      opacity: selected ? 1 : 0,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      child: TickerMode(
+        enabled: selected,
+        child: IgnorePointer(ignoring: !selected, child: child),
       ),
     );
   }

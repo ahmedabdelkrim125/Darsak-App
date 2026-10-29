@@ -48,7 +48,7 @@ class ClassroomStore extends ChangeNotifier {
               _visible(lesson.subject) && lesson.weekdays.contains(weekday),
         )
         .toList();
-    result.sort((a, b) => a.minutes.compareTo(b.minutes));
+    result.sort((a, b) => a.startMinutes.compareTo(b.startMinutes));
     return result;
   }
 
@@ -103,27 +103,42 @@ class ClassroomStore extends ChangeNotifier {
   String? addLesson({
     required String groupId,
     required TimeOfDay time,
+    required TimeOfDay endTime,
     required Set<int> weekdays,
+    required LessonPlaceType placeType,
+    String placeName = '',
   }) {
     final group = groupById(groupId);
     if (group == null) return 'المجموعة غير موجودة';
+    final start = time.hour * 60 + time.minute;
+    final end = endTime.hour * 60 + endTime.minute;
+    if (end <= start) return 'وقت النهاية يجب أن يكون بعد وقت البداية';
     final clash = _lessons.any(
       (lesson) =>
-          lesson.groupId == groupId &&
-          lesson.time == time &&
-          lesson.weekdays.intersection(weekdays).isNotEmpty,
+          _visible(lesson.subject) &&
+          lesson.weekdays.intersection(weekdays).isNotEmpty &&
+          start < lesson.endMinutes &&
+          lesson.startMinutes < end,
     );
-    if (clash) return 'توجد حصة لنفس المجموعة في نفس الوقت واليوم';
+    if (clash) return 'يتعارض مع حصة أخرى في نفس اليوم';
     _lessons.add(
       ClassroomLesson(
         id: _newId(),
         groupId: groupId,
         subject: group.subject,
         time: time,
+        endTime: endTime,
         weekdays: Set.unmodifiable(weekdays),
+        placeType: placeType,
+        placeName: placeName.trim(),
       ),
     );
     notifyListeners();
     return null;
+  }
+
+  void deleteLesson(String id) {
+    _lessons.removeWhere((lesson) => lesson.id == id);
+    notifyListeners();
   }
 }

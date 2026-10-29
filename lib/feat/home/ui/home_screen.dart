@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/const/app_assets.dart';
 import '../../../core/helper/responsive_extension.dart';
 import '../../../core/helper/spacing.dart';
 import '../../../core/session/app_session.dart';
@@ -49,7 +50,11 @@ class HomeScreen extends StatelessWidget {
                     onNotifications: () => HomeActions.comingSoon(context),
                   ),
                   verticalSpace(height: 18),
-                  const HomeBanner(),
+                  const HomeBanner(
+                    title: HomeContent.bannerTitle,
+                    description: HomeContent.bannerDescription,
+                    image: AppAssets.teacher,
+                  ),
                   verticalSpace(height: 18),
                   HomeQuickActions(
                     actions: HomeContent.quickActions,

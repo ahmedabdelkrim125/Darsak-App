@@ -1,0 +1,1 @@
+enum ScheduleViewMode { week, month }
