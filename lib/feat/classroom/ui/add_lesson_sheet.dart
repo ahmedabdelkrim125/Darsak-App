@@ -8,9 +8,11 @@ import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_choice_chips.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/app_toast.dart';
 import '../data/classroom_store.dart';
+import '../data/models/classroom_lesson.dart';
 import 'widgets/classroom_chip.dart';
 import 'widgets/group_picker.dart';
 import 'widgets/sheet_label.dart';
@@ -32,10 +34,14 @@ class AddLessonSheet extends StatefulWidget {
 
 class _AddLessonSheetState extends State<AddLessonSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _startController = TextEditingController();
+  final TextEditingController _endController = TextEditingController();
+  final TextEditingController _placeController = TextEditingController();
   final Set<int> _days = {DateTime.now().weekday};
   late String? _groupId;
-  TimeOfDay? _time;
+  TimeOfDay? _start;
+  TimeOfDay? _end;
+  LessonPlaceType _placeType = LessonPlaceType.online;
   String? _error;
 
   @override
@@ -47,20 +53,47 @@ class _AddLessonSheetState extends State<AddLessonSheet> {
 
   @override
   void dispose() {
-    _timeController.dispose();
+    _startController.dispose();
+    _endController.dispose();
+    _placeController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickTime() async {
+  Future<TimeOfDay?> _pick(TimeOfDay? current, TimeOfDay fallback) {
     FocusScope.of(context).unfocus();
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _time ?? const TimeOfDay(hour: 16, minute: 0),
+    return showTimePicker(context: context, initialTime: current ?? fallback);
+  }
+
+  Future<void> _pickStart() async {
+    final picked = await _pick(_start, const TimeOfDay(hour: 16, minute: 0));
+    if (picked == null || !mounted) return;
+    setState(() {
+      _start = picked;
+      _startController.text = formatTime(picked);
+      if (_end == null) {
+        final minutes = picked.hour * 60 + picked.minute + 90;
+        if (minutes < 24 * 60) {
+          final suggested = TimeOfDay(
+            hour: minutes ~/ 60,
+            minute: minutes % 60,
+          );
+          _end = suggested;
+          _endController.text = formatTime(suggested);
+        }
+      }
+      _error = null;
+    });
+  }
+
+  Future<void> _pickEnd() async {
+    final picked = await _pick(
+      _end ?? _start,
+      const TimeOfDay(hour: 17, minute: 30),
     );
     if (picked == null || !mounted) return;
     setState(() {
-      _time = picked;
-      _timeController.text = formatTime(picked);
+      _end = picked;
+      _endController.text = formatTime(picked);
       _error = null;
     });
   }
@@ -80,16 +113,20 @@ class _AddLessonSheetState extends State<AddLessonSheet> {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final groupId = _groupId;
-    final time = _time;
-    if (groupId == null || time == null) return;
+    final start = _start;
+    final end = _end;
+    if (groupId == null || start == null || end == null) return;
     if (_days.isEmpty) {
       setState(() => _error = 'اختر يوماً واحداً على الأقل');
       return;
     }
     final error = ClassroomStore.instance.addLesson(
       groupId: groupId,
-      time: time,
+      time: start,
+      endTime: end,
       weekdays: _days,
+      placeType: _placeType,
+      placeName: _placeController.text,
     );
     if (error != null) {
       setState(() => _error = error);
@@ -104,6 +141,7 @@ class _AddLessonSheetState extends State<AddLessonSheet> {
     final palette = context.palette;
     final store = ClassroomStore.instance;
     final group = _groupId == null ? null : store.groupById(_groupId!);
+    final isOnline = _placeType == LessonPlaceType.online;
 
     return Form(
       key: _formKey,
@@ -131,15 +169,39 @@ class _AddLessonSheetState extends State<AddLessonSheet> {
               ),
             ),
           verticalSpace(height: 16),
-          AppTextField(
-            controller: _timeController,
-            hintText: 'وقت الحصة',
-            prefixIcon: Icons.schedule_rounded,
-            readOnly: true,
-            onTap: _pickTime,
-            validator: (value) =>
-                AppValidators.required(value, message: 'اختر وقت الحصة'),
-            reserveErrorSpace: true,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: AppTextField(
+                  controller: _startController,
+                  hintText: 'وقت البداية',
+                  prefixIcon: Icons.schedule_rounded,
+                  readOnly: true,
+                  onTap: _pickStart,
+                  validator: (value) => AppValidators.required(
+                    value,
+                    message: 'اختر وقت البداية',
+                  ),
+                  reserveErrorSpace: true,
+                ),
+              ),
+              horizontalSpace(width: 10),
+              Expanded(
+                child: AppTextField(
+                  controller: _endController,
+                  hintText: 'وقت النهاية',
+                  prefixIcon: Icons.schedule_rounded,
+                  readOnly: true,
+                  onTap: _pickEnd,
+                  validator: (value) => AppValidators.required(
+                    value,
+                    message: 'اختر وقت النهاية',
+                  ),
+                  reserveErrorSpace: true,
+                ),
+              ),
+            ],
           ),
           const SheetLabel('أيام الحصة'),
           Wrap(
@@ -154,7 +216,35 @@ class _AddLessonSheetState extends State<AddLessonSheet> {
                 ),
             ],
           ),
+          verticalSpace(height: 16),
+          const SheetLabel('مكان الحصة'),
+          AppChoiceChips<LessonPlaceType>(
+            items: const [
+              AppChoiceItem<LessonPlaceType>(
+                value: LessonPlaceType.online,
+                label: 'أونلاين',
+              ),
+              AppChoiceItem<LessonPlaceType>(
+                value: LessonPlaceType.onsite,
+                label: 'حضوري',
+              ),
+            ],
+            value: _placeType,
+            onChanged: (value) => setState(() => _placeType = value),
+          ),
           verticalSpace(height: 14),
+          AppTextField(
+            controller: _placeController,
+            hintText: isOnline
+                ? 'المنصة (Zoom, Google Meet...)'
+                : 'القاعة أو المكان',
+            prefixIcon: isOnline
+                ? Icons.videocam_outlined
+                : Icons.location_on_outlined,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+            reserveErrorSpace: true,
+          ),
           if (_error != null)
             Padding(
               padding: EdgeInsets.only(bottom: 10.h),

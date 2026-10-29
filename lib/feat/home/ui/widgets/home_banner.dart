@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
-import '../../../../core/const/app_assets.dart';
 import '../../../../core/helper/responsive_extension.dart';
 import '../../../../core/helper/spacing.dart';
 import '../../../../core/theme/app_fonts.dart';
 import '../../../../core/theme/app_palette.dart';
-import '../../data/home_content.dart';
 import 'home_banner_sparkle.dart';
 
 class HomeBanner extends StatelessWidget {
-  const HomeBanner({super.key});
+  const HomeBanner({
+    super.key,
+    required this.title,
+    required this.description,
+    required this.image,
+  });
+
+  final String title;
+  final String description;
+  final String image;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +54,7 @@ class HomeBanner extends StatelessWidget {
                     ),
                     verticalSpace(height: 6),
                     Text(
-                      HomeContent.bannerTitle,
+                      title,
                       style: AppFonts.headlineLarge.copyWith(
                         color: palette.textPrimary,
                         fontSize: 24.sp,
@@ -56,7 +63,7 @@ class HomeBanner extends StatelessWidget {
                     ),
                     verticalSpace(height: 8),
                     Text(
-                      HomeContent.bannerDescription,
+                      description,
                       style: AppFonts.bodySmall.copyWith(
                         color: palette.textSecondary,
                         fontSize: 12.sp,
@@ -69,7 +76,7 @@ class HomeBanner extends StatelessWidget {
             Expanded(
               flex: 11,
               child: Image.asset(
-                AppAssets.teacher,
+                image,
                 fit: BoxFit.contain,
                 alignment: Alignment.bottomCenter,
               ),

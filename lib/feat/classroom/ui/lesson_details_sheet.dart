@@ -58,7 +58,12 @@ class LessonDetailsSheet extends StatelessWidget {
             ),
             verticalSpace(height: 4),
             Text(
-              '${formatTime(lesson.time)} · ${WeekDays.labels(lesson.weekdays)}',
+              '${formatTime(lesson.time)} - ${formatTime(lesson.endTime)} · ${WeekDays.labels(lesson.weekdays)}',
+              style: AppFonts.bodyMedium.copyWith(color: palette.textSecondary),
+            ),
+            verticalSpace(height: 4),
+            Text(
+              lesson.placeLabel,
               style: AppFonts.bodyMedium.copyWith(color: palette.textSecondary),
             ),
             verticalSpace(height: 18),
