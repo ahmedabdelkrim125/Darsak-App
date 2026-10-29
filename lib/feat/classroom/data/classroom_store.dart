@@ -72,6 +72,7 @@ class ClassroomStore extends ChangeNotifier {
     required String name,
     required SchoolYear year,
     required String subject,
+    required int monthlyFee,
   }) {
     final cleanName = name.trim();
     final exists = _groups.any(
@@ -87,6 +88,7 @@ class ClassroomStore extends ChangeNotifier {
         name: cleanName,
         subject: subject,
         year: year,
+        monthlyFee: monthlyFee,
       ),
     );
     notifyListeners();

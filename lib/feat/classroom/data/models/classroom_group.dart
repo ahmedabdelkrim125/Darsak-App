@@ -7,6 +7,7 @@ class ClassroomGroup {
     required this.name,
     required this.subject,
     required this.year,
+    required this.monthlyFee,
     this.students = const [],
   });
 
@@ -14,6 +15,7 @@ class ClassroomGroup {
   final String name;
   final String subject;
   final SchoolYear year;
+  final int monthlyFee;
   final List<ClassroomStudent> students;
 
   ClassroomGroup copyWith({List<ClassroomStudent>? students}) {
@@ -22,6 +24,7 @@ class ClassroomGroup {
       name: name,
       subject: subject,
       year: year,
+      monthlyFee: monthlyFee,
       students: students ?? this.students,
     );
   }
