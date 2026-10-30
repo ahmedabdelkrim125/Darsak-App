@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../../core/helper/responsive_extension.dart';
 import '../../../../core/helper/spacing.dart';
+import '../../../../core/session/app_session.dart';
 import '../../../../core/theme/app_fonts.dart';
 import '../../../../core/theme/app_palette.dart';
+import '../../../../core/widgets/app_avatar.dart';
 import '../../data/home_content.dart';
-import '../../data/home_icons.dart';
 import 'home_notification_button.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -23,23 +24,7 @@ class HomeHeader extends StatelessWidget {
 
     return Row(
       children: [
-        Container(
-          width: 52.r,
-          height: 52.r,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [
-                palette.primary.withValues(alpha: 0.35),
-                palette.accent.withValues(alpha: 0.35),
-              ],
-            ),
-            border: Border.all(color: palette.background, width: 2),
-          ),
-          child: Icon(HomeIcons.user, size: 28.r, color: palette.primary),
-        ),
+        AppAvatar(size: 52.r, path: AppSession.instance.avatarPath),
         horizontalSpace(width: 12),
         Expanded(
           child: Column(

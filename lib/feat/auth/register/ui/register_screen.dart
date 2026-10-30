@@ -87,6 +87,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       fullName: _fullName.text,
       username: _username.text,
       subject: _isTeacher ? _subject.text : null,
+      email: _email.text,
+      phone: _isTeacher ? _phone.text : null,
     );
     RegisterSuccessDialog.show(context, widget.role);
   }

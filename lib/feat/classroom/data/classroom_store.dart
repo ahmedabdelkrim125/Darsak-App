@@ -177,4 +177,10 @@ class ClassroomStore extends ChangeNotifier {
     _lessons.removeWhere((lesson) => lesson.id == id);
     notifyListeners();
   }
+
+  void reset() {
+    _groups.clear();
+    _lessons.clear();
+    notifyListeners();
+  }
 }
