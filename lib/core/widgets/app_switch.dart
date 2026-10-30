@@ -15,10 +15,13 @@ class AppSwitch extends StatelessWidget {
       value: value,
       onChanged: onChanged,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      thumbColor: WidgetStateProperty.resolveWith<Color?>((states) => Colors.white),
+      thumbColor: WidgetStateProperty.resolveWith<Color?>(
+        (states) => Colors.white,
+      ),
       trackColor: WidgetStateProperty.resolveWith<Color?>(
-        (states) =>
-            states.contains(WidgetState.selected) ? palette.primary : palette.track,
+        (states) => states.contains(WidgetState.selected)
+            ? palette.primary
+            : palette.track,
       ),
       trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
         (states) => Colors.transparent,

@@ -36,7 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _submit() {
     FocusScope.of(context).unfocus();
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    AppSession.instance.signIn(role: widget.role);
+    final email = _emailController.text.trim();
+    AppSession.instance.signIn(
+      role: widget.role,
+      email: email.contains('@') ? email : null,
+    );
     context.pushReplacementNamed(Routes.home, arguments: widget.role);
   }
 

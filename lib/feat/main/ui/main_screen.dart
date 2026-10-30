@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
+import '../../more/ui/more_screen.dart';
 import '../data/models/main_tab_model.dart';
 import 'widgets/main_ambient_background.dart';
 import 'widgets/main_tab_placeholder.dart';
-
 import '../../../core/const/user_role.dart';
 import '../../groups/ui/groups_screen.dart';
 import '../../home/ui/home_screen.dart';
@@ -45,6 +45,7 @@ class _MainScreenState extends State<MainScreen> {
       MainTabId.schedule when _isTeacher => const ScheduleScreen(),
       MainTabId.groups when _isTeacher => const GroupsScreen(),
       MainTabId.payments when _isTeacher => const PaymentsScreen(),
+      MainTabId.more when _isTeacher => const MoreScreen(),
       MainTabId.home ||
       MainTabId.schedule ||
       MainTabId.groups => MainTabPlaceholder(tab: tab),

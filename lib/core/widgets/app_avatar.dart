@@ -20,7 +20,11 @@ class AppAvatar extends StatelessWidget {
     final palette = context.palette;
     final avatarPath = path;
     final fallback = Center(
-      child: Icon(SolarIconsBold.user, size: size * 0.55, color: palette.primary),
+      child: Icon(
+        SolarIconsBold.user,
+        size: size * 0.55,
+        color: palette.primary,
+      ),
     );
 
     return Container(

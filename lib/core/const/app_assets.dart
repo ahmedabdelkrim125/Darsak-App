@@ -17,4 +17,5 @@ class AppAssets {
   static const String schedulePlanner = '$_images/schedule_planner.png';
   static const String scheduleEmpty = '$_images/schedule_empty.png';
   static const String paymentsBanner = '$_images/payments_banner.png';
+  static const String verifiedBadge = '$_images/verified_badge.png';
 }

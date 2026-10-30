@@ -167,4 +167,9 @@ class PaymentsStore extends ChangeNotifier {
     _records.removeWhere((record) => record.id == id);
     notifyListeners();
   }
+
+  void reset() {
+    _records.clear();
+    notifyListeners();
+  }
 }
