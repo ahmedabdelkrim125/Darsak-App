@@ -147,7 +147,8 @@ class _AddGroupSheetState extends State<AddGroupSheet> {
             ],
             value: _stage,
             onChanged: _onStageChanged,
-            validator: (value) => value == null ? 'اختر المرحلة الدراسية' : null,
+            validator: (value) =>
+                value == null ? 'اختر المرحلة الدراسية' : null,
             reserveErrorSpace: true,
           ),
           if (stage != null && stage != StudentGrade.university) ...[

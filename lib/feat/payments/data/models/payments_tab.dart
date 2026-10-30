@@ -1,0 +1,1 @@
+enum PaymentsTab { students, groups }
