@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../feat/notification/ui/notification_screen.dart';
 import 'routes.dart';
 import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
 import '../../feat/auth/login/ui/login_screen.dart';
@@ -34,6 +35,11 @@ class AppRouter {
         );
       case Routes.home:
         return _fadeRoute(MainScreen(role: _roleOf(settings)), settings);
+      case Routes.notifications:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const NotificationScreen(),
+        );
       default:
         return MaterialPageRoute<void>(
           settings: settings,

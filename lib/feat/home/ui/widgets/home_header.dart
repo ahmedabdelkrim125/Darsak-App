@@ -5,22 +5,20 @@ import '../../../../core/session/app_session.dart';
 import '../../../../core/theme/app_fonts.dart';
 import '../../../../core/theme/app_palette.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../notification/data/notification_store.dart';
+import '../../../notification/ui/notification_navigator.dart';
 import '../../data/home_content.dart';
 import 'home_notification_button.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({
-    super.key,
-    required this.name,
-    required this.onNotifications,
-  });
+  const HomeHeader({super.key, required this.name});
 
   final String name;
-  final VoidCallback onNotifications;
 
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
+    final store = NotificationStore.instance;
 
     return Row(
       children: [
@@ -51,9 +49,12 @@ class HomeHeader extends StatelessWidget {
           ),
         ),
         horizontalSpace(width: 12),
-        HomeNotificationButton(
-          count: HomeContent.notificationCount,
-          onTap: onNotifications,
+        ListenableBuilder(
+          listenable: store,
+          builder: (context, _) => HomeNotificationButton(
+            count: store.unreadCount,
+            onTap: () => NotificationNavigator.open(context),
+          ),
         ),
       ],
     );

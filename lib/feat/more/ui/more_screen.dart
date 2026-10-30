@@ -59,11 +59,7 @@ class MoreScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  HomeHeader(
-                    name: headerName,
-                    onNotifications: () =>
-                        MoreNavigator.run(context, MoreAction.notifications),
-                  ),
+                  HomeHeader(name: headerName),
                   verticalSpace(height: 18),
                   MoreProfileCard(
                     name: cardName,

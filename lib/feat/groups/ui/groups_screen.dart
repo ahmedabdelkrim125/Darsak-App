@@ -10,7 +10,6 @@ import '../../classroom/ui/add_group_sheet.dart';
 import '../../classroom/ui/group_details_sheet.dart';
 import '../../classroom/ui/widgets/group_actions_sheet.dart';
 import '../../home/data/home_content.dart';
-import '../../home/ui/home_actions.dart';
 import '../../home/ui/widgets/home_header.dart';
 import '../../schedule/ui/widgets/schedule_add_button.dart';
 import '../data/groups_content.dart';
@@ -66,10 +65,7 @@ class _GroupsScreenState extends State<GroupsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  HomeHeader(
-                    name: name,
-                    onNotifications: () => HomeActions.comingSoon(context),
-                  ),
+                  HomeHeader(name: name),
                   verticalSpace(height: 18),
                   Row(
                     children: [
