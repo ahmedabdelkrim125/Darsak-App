@@ -13,6 +13,8 @@ class SplashBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ClipRect(
       child: AnimatedBuilder(
         animation: Listenable.merge([intro, loop]),
@@ -29,7 +31,7 @@ class SplashBackground extends StatelessWidget {
           );
         },
         child: Image.asset(
-          AppAssets.splashBack,
+          isDark ? AppAssets.splashBackDark : AppAssets.splashBack,
           fit: BoxFit.cover,
           width: double.infinity,
           height: double.infinity,
