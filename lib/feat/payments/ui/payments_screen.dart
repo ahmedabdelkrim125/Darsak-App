@@ -7,7 +7,6 @@ import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../classroom/data/classroom_store.dart';
 import '../../home/data/home_content.dart';
-import '../../home/ui/home_actions.dart';
 import '../../home/ui/widgets/home_banner.dart';
 import '../../home/ui/widgets/home_header.dart';
 import '../../schedule/ui/widgets/schedule_add_button.dart';
@@ -128,10 +127,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      HomeHeader(
-                        name: name,
-                        onNotifications: () => HomeActions.comingSoon(context),
-                      ),
+                      HomeHeader(name: name),
                       verticalSpace(height: 18),
                       const HomeBanner(
                         title: PaymentsContent.bannerTitle,

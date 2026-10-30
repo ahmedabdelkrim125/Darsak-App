@@ -45,10 +45,7 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  HomeHeader(
-                    name: name,
-                    onNotifications: () => HomeActions.comingSoon(context),
-                  ),
+                  HomeHeader(name: name),
                   verticalSpace(height: 18),
                   const HomeBanner(
                     title: HomeContent.bannerTitle,
