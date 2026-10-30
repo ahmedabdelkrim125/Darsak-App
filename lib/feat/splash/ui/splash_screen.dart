@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/helper/extensions.dart';
 import '../../../core/routing/routes.dart';
-
+import '../../../core/theme/app_palette.dart';
 import 'widgets/splash_background.dart';
 import 'widgets/splash_logo.dart';
 import 'widgets/splash_orbit.dart';
@@ -50,12 +50,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.transparent,
-      ),
+      value: (isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark)
+          .copyWith(statusBarColor: Colors.transparent),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.palette.background,
         body: Stack(
           fit: StackFit.expand,
           children: [

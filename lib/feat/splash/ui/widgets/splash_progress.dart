@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
-
 import '../../../../core/helper/responsive_extension.dart';
+import '../../../../core/theme/app_palette.dart';
 
 class SplashProgress extends StatelessWidget {
   const SplashProgress({super.key, required this.intro});
@@ -13,6 +12,8 @@ class SplashProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(bottom: 48.h),
@@ -25,7 +26,7 @@ class SplashProgress extends StatelessWidget {
                 width: 140.w,
                 height: 6.h,
                 decoration: BoxDecoration(
-                  color: AppColors.lavender,
+                  color: palette.track,
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: ClipRRect(
@@ -33,10 +34,10 @@ class SplashProgress extends StatelessWidget {
                   child: FractionallySizedBox(
                     alignment: AlignmentDirectional.centerStart,
                     widthFactor: _fill.transform(intro.value),
-                    child: const DecoratedBox(
+                    child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [AppColors.primary, AppColors.accent],
+                          colors: [palette.primary, palette.accent],
                         ),
                       ),
                     ),
