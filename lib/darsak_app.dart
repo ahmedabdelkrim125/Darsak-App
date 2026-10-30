@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/helper/responsive_extension.dart';
 import 'core/routing/app_router.dart';
 import 'core/routing/routes.dart';
+import 'core/settings/app_settings.dart';
 import 'core/theme/app_theme.dart';
 
 class DarsakApp extends StatelessWidget {
@@ -10,20 +11,29 @@ class DarsakApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'درسّك',
-      theme: AppTheme.light,
-      locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      builder: (context, child) => ResponsiveInit(child: child!),
-      initialRoute: Routes.splash,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+    final settings = AppSettings.instance;
+
+    return ListenableBuilder(
+      listenable: settings,
+      builder: (context, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'درسّك',
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: settings.themeMode,
+          locale: const Locale('ar'),
+          supportedLocales: const [Locale('ar')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          builder: (context, child) => ResponsiveInit(child: child!),
+          initialRoute: Routes.splash,
+          onGenerateRoute: AppRouter.onGenerateRoute,
+        );
+      },
     );
   }
 }
