@@ -1,0 +1,16 @@
+enum ApiErrorType {
+  noConnection,
+  timeout,
+  cancelled,
+  badRequest,
+  unauthorized,
+  sessionExpired,
+  forbidden,
+  notFound,
+  conflict,
+  validation,
+  rateLimited,
+  server,
+  parsing,
+  unknown,
+}
