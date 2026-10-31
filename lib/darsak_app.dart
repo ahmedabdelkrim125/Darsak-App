@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/helper/responsive_extension.dart';
+import 'core/routing/app_navigator.dart';
 import 'core/routing/app_router.dart';
 import 'core/routing/routes.dart';
 import 'core/settings/app_settings.dart';
@@ -17,6 +18,7 @@ class DarsakApp extends StatelessWidget {
       listenable: settings,
       builder: (context, _) {
         return MaterialApp(
+          navigatorKey: AppNavigator.key,
           debugShowCheckedModeBanner: false,
           title: 'درسّك',
           theme: AppTheme.light,

@@ -12,6 +12,9 @@ class RegisterContent {
   final String title;
   final List<String> subtitles;
 
+  static const String _codeSubtitle =
+      'أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك';
+
   static RegisterContent of(UserRole role) {
     return switch (role) {
       UserRole.teacher => const RegisterContent(
@@ -21,6 +24,7 @@ class RegisterContent {
           'عرّف طلابك بنفسك',
           'تخصصك وبيانات التواصل معك',
           'أمّن حسابك بكلمة مرور قوية',
+          _codeSubtitle,
         ],
       ),
       UserRole.student => const RegisterContent(
@@ -30,6 +34,7 @@ class RegisterContent {
           'عرّف معلميك بنفسك',
           'مرحلتك الدراسية وبيانات التواصل',
           'أمّن حسابك بكلمة مرور قوية',
+          _codeSubtitle,
         ],
       ),
     };

@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../const/user_role.dart';
+import '../network/models/profile_model.dart';
 
 class AppSession extends ChangeNotifier {
   AppSession._();
 
   static final AppSession instance = AppSession._();
 
+  String _userId = '';
   UserRole? _role;
   String _fullName = '';
   String _username = '';
@@ -16,6 +18,8 @@ class AppSession extends ChangeNotifier {
   String? _avatarPath;
   DateTime? _verifiedAt;
 
+  String get userId => _userId;
+  bool get isSignedIn => _userId.isNotEmpty && _role != null;
   UserRole? get role => _role;
   String get fullName => _fullName;
   String get username => _username;
@@ -32,6 +36,50 @@ class AppSession extends ChangeNotifier {
   String get firstName {
     if (_fullName.isEmpty) return '';
     return _fullName.split(RegExp(r'\s+')).first;
+  }
+
+  void applyProfile(ProfileModel profile) {
+    _userId = profile.id;
+    _role = profile.role;
+    _fullName = _clean(profile.fullName);
+    _username = profile.username ?? '';
+    _subject = _clean(profile.subject);
+    _email = profile.email;
+    _phone = profile.phone;
+    _bio = profile.bio;
+    _verifiedAt = profile.verifiedAt;
+    notifyListeners();
+  }
+
+  Map<String, dynamic> toCache() {
+    return {
+      'user_id': _userId,
+      'role': _role?.name,
+      'full_name': _fullName,
+      'username': _username,
+      'subject': _subject,
+      'email': _email,
+      'phone': _phone,
+      'bio': _bio,
+      'avatar_path': _avatarPath,
+      'verified_at': _verifiedAt?.toIso8601String(),
+    };
+  }
+
+  void restore(Map<String, dynamic> json) {
+    final roleName = json['role'];
+    final verified = json['verified_at'];
+    _userId = (json['user_id'] as String?) ?? '';
+    _role = UserRole.values.where((role) => role.name == roleName).firstOrNull;
+    _fullName = (json['full_name'] as String?) ?? '';
+    _username = (json['username'] as String?) ?? '';
+    _subject = (json['subject'] as String?) ?? '';
+    _email = (json['email'] as String?) ?? '';
+    _phone = (json['phone'] as String?) ?? '';
+    _bio = (json['bio'] as String?) ?? '';
+    _avatarPath = json['avatar_path'] as String?;
+    _verifiedAt = verified is String ? DateTime.tryParse(verified) : null;
+    notifyListeners();
   }
 
   void signIn({
@@ -82,6 +130,7 @@ class AppSession extends ChangeNotifier {
   }
 
   void signOut() {
+    _userId = '';
     _role = null;
     _fullName = '';
     _username = '';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/helper/extensions.dart';
 import '../../../core/routing/routes.dart';
+import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_palette.dart';
 import 'widgets/splash_background.dart';
 import 'widgets/splash_logo.dart';
@@ -38,6 +39,11 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _goNext() async {
     await Future<void>.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
+    final session = AppSession.instance;
+    if (session.isSignedIn) {
+      context.pushReplacementNamed(Routes.home, arguments: session.role);
+      return;
+    }
     context.pushReplacementNamed(Routes.onboarding);
   }
 

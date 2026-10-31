@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../core/di/service_locator.dart';
 import '../../../core/helper/spacing.dart';
 import '../../../core/routing/routes.dart';
-import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_button_style.dart';
+import '../../auth/data/repo/auth_repository.dart';
 import '../../classroom/data/classroom_store.dart';
 import '../../payments/data/payments_store.dart';
 
@@ -28,7 +30,7 @@ class LogoutSheet extends StatelessWidget {
     Navigator.of(context).pop();
     navigator.pushNamedAndRemoveUntil(Routes.roleSelection, (route) => false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AppSession.instance.signOut();
+      unawaited(getIt<AuthRepository>().signOut());
       ClassroomStore.instance.reset();
       PaymentsStore.instance.reset();
     });
