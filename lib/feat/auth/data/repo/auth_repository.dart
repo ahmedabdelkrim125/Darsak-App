@@ -1,6 +1,7 @@
 import 'dart:async';
 import '../../../../core/const/student_grade.dart';
 import '../../../../core/const/user_role.dart';
+import '../../../../core/database/local_data_loader.dart';
 import '../../../../core/helper/text_sanitizer.dart';
 import '../../../../core/network/api/auth_api.dart';
 import '../../../../core/network/api/profile_api.dart';
@@ -22,13 +23,17 @@ class AuthRepository {
     required TokenStorage storage,
     required SessionCache cache,
     required AppSession session,
+    required LocalDataLoader localData,
   }) : _authApi = authApi,
        _profileApi = profileApi,
        _storage = storage,
        _cache = cache,
-       _session = session {
+       _session = session,
+       _localData = localData {
     _session.addListener(_persistSession);
   }
+
+  final LocalDataLoader _localData;
 
   final AuthApi _authApi;
   final ProfileApi _profileApi;
@@ -41,7 +46,9 @@ class AuthRepository {
     final cached = await _cache.read();
     if (tokens == null || cached == null) return false;
     _session.restore(cached);
-    return _session.isSignedIn;
+    if (!_session.isSignedIn) return false;
+    await _localData.open(_session.userId);
+    return true;
   }
 
   Future<ApiResult<bool>> signUp({
@@ -161,8 +168,9 @@ class AuthRepository {
     });
   }
 
-  Future<void> signOut() async {
+    Future<void> signOut() async {
     _session.signOut();
+    await _localData.close();
     await _cache.clear();
     await _discardTokens();
   }
@@ -187,6 +195,7 @@ class AuthRepository {
         );
       }
       _session.applyProfile(profile);
+      await _localData.open(profile.id);
       return profile;
     } on Object {
       await _storage.clear();

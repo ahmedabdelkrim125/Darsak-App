@@ -6,6 +6,8 @@ import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/app_bottom_sheet.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_toast.dart';
+import '../../attendance/data/attendance_store.dart';
+import '../../attendance/ui/student_attendance_sheet.dart';
 import '../data/classroom_store.dart';
 import 'add_student_sheet.dart';
 import 'widgets/classroom_student_row.dart';
@@ -28,12 +30,14 @@ class GroupDetailsSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = context.palette;
     final store = ClassroomStore.instance;
+    final attendance = AttendanceStore.instance;
 
     return ListenableBuilder(
-      listenable: store,
+      listenable: Listenable.merge([store, attendance]),
       builder: (context, _) {
         final group = store.groupById(groupId);
         if (group == null) return const SizedBox.shrink();
+        final today = DateTime.now();
 
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -65,13 +69,28 @@ class GroupDetailsSheet extends StatelessWidget {
                   ),
                 ),
               )
-            else
+            else ...[
+              Padding(
+                padding: EdgeInsets.only(bottom: 10.h),
+                child: Text(
+                  'اضغط على الطالب لتسجيل الحضور والغياب',
+                  style: AppFonts.bodySmall.copyWith(
+                    color: palette.textSecondary,
+                  ),
+                ),
+              ),
               for (final student in group.students)
                 Padding(
                   padding: EdgeInsets.only(bottom: 8.h),
                   child: ClassroomStudentRow(
                     key: ValueKey(student.id),
                     student: student,
+                    todayStatus: attendance.statusOf(student.id, today),
+                    onTap: () => StudentAttendanceSheet.show(
+                      context,
+                      groupId: group.id,
+                      studentId: student.id,
+                    ),
                     onRemove: () {
                       store.removeStudent(
                         groupId: group.id,
@@ -81,6 +100,7 @@ class GroupDetailsSheet extends StatelessWidget {
                     },
                   ),
                 ),
+            ],
             verticalSpace(height: 6),
             AppButton(
               label: 'إضافة طالب',

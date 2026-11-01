@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../feat/auth/data/repo/auth_repository.dart';
 import '../config/app_env.dart';
+import '../database/local_data_loader.dart';
 import '../network/api/auth_api.dart';
 import '../network/api/profile_api.dart';
 import '../network/auth/session_expired_notifier.dart';
@@ -41,6 +42,7 @@ void setupServiceLocator() {
     )
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepository(
+                localData: LocalDataLoader.instance,
         authApi: getIt(),
         profileApi: getIt(),
         storage: getIt(),

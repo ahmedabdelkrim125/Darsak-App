@@ -1,7 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../../core/const/school_year.dart';
+import '../../../core/database/run_local.dart';
+import '../../../core/helper/id_generator.dart';
 import '../../../core/session/app_session.dart';
+import '../../notification/data/models/notification_type.dart';
+import '../../notification/data/notification_store.dart';
+import 'classroom_local_source.dart';
 import 'models/classroom_group.dart';
 import 'models/classroom_lesson.dart';
 import 'models/classroom_student.dart';
@@ -13,9 +18,19 @@ class ClassroomStore extends ChangeNotifier {
 
   final List<ClassroomGroup> _groups = [];
   final List<ClassroomLesson> _lessons = [];
-  int _counter = 0;
 
-  String _newId() => '${++_counter}';
+  ClassroomLocalSource get _local => ClassroomLocalSource.instance;
+
+  Future<void> load() async {
+    final snapshot = await _local.load();
+    _groups
+      ..clear()
+      ..addAll(snapshot.groups);
+    _lessons
+      ..clear()
+      ..addAll(snapshot.lessons);
+    notifyListeners();
+  }
 
   bool _visible(String subject) {
     final session = AppSession.instance;
@@ -82,15 +97,15 @@ class ClassroomStore extends ChangeNotifier {
           group.name == cleanName,
     );
     if (exists) return 'يوجد مجموعة بنفس الاسم في نفس السنة';
-    _groups.add(
-      ClassroomGroup(
-        id: _newId(),
-        name: cleanName,
-        subject: subject,
-        year: year,
-        monthlyFee: monthlyFee,
-      ),
+    final group = ClassroomGroup(
+      id: IdGenerator.newId(),
+      name: cleanName,
+      subject: subject,
+      year: year,
+      monthlyFee: monthlyFee,
     );
+    _groups.add(group);
+    runLocal(() => _local.saveGroup(group));
     notifyListeners();
     return null;
   }
@@ -98,6 +113,7 @@ class ClassroomStore extends ChangeNotifier {
   void deleteGroup(String id) {
     _groups.removeWhere((group) => group.id == id);
     _lessons.removeWhere((lesson) => lesson.groupId == id);
+    runLocal(() => _local.deleteGroup(id));
     notifyListeners();
   }
 
@@ -115,11 +131,17 @@ class ClassroomStore extends ChangeNotifier {
       return 'هذا الطالب مضاف بالفعل في المجموعة';
     }
     final student = ClassroomStudent(
-      id: _newId(),
+      id: IdGenerator.newId(),
       name: name.trim(),
       username: cleanUsername,
     );
     _groups[index] = group.copyWith(students: [...group.students, student]);
+    runLocal(() => _local.saveStudent(groupId: groupId, student: student));
+    NotificationStore.instance.add(
+      type: NotificationType.studentJoined,
+      title: 'تم إضافة طالب جديد',
+      body: 'تم إضافة الطالب ${student.name} إلى مجموعة ${group.name}',
+    );
     notifyListeners();
     return null;
   }
@@ -133,6 +155,7 @@ class ClassroomStore extends ChangeNotifier {
           .where((student) => student.id != studentId)
           .toList(),
     );
+    runLocal(() => _local.deleteStudent(studentId));
     notifyListeners();
   }
 
@@ -157,24 +180,25 @@ class ClassroomStore extends ChangeNotifier {
           lesson.startMinutes < end,
     );
     if (clash) return 'يتعارض مع حصة أخرى في نفس اليوم';
-    _lessons.add(
-      ClassroomLesson(
-        id: _newId(),
-        groupId: groupId,
-        subject: group.subject,
-        time: time,
-        endTime: endTime,
-        weekdays: Set.unmodifiable(weekdays),
-        placeType: placeType,
-        placeName: placeName.trim(),
-      ),
+    final lesson = ClassroomLesson(
+      id: IdGenerator.newId(),
+      groupId: groupId,
+      subject: group.subject,
+      time: time,
+      endTime: endTime,
+      weekdays: Set.unmodifiable(weekdays),
+      placeType: placeType,
+      placeName: placeName.trim(),
     );
+    _lessons.add(lesson);
+    runLocal(() => _local.saveLesson(lesson));
     notifyListeners();
     return null;
   }
 
   void deleteLesson(String id) {
     _lessons.removeWhere((lesson) => lesson.id == id);
+    runLocal(() => _local.deleteLesson(id));
     notifyListeners();
   }
 

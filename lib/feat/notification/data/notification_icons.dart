@@ -6,17 +6,19 @@ import 'models/notification_type.dart';
 class NotificationIcons {
   NotificationIcons._();
 
-  static IconData ofType(NotificationType type) {
+   static IconData ofType(NotificationType type) {
     return switch (type) {
       NotificationType.lessonUpcoming => SolarIconsBold.calendar,
       NotificationType.paymentReceived => SolarIconsBold.wallet,
       NotificationType.studentAbsent => SolarIconsBold.usersGroupRounded,
-      NotificationType.newMessage => SolarIconsBold.chatRoundDots,
+      NotificationType.newMessage => SolarIconsBold.letter,
       NotificationType.studentJoined => SolarIconsBold.userPlus,
       NotificationType.paymentReminder => SolarIconsBold.dangerCircle,
       NotificationType.scheduleChanged => SolarIconsBold.clockCircle,
-      NotificationType.reportReady => SolarIconsBold.document,
+      NotificationType.reportReady => SolarIconsBold.fileText,
       NotificationType.accountVerified => SolarIconsBold.shieldCheck,
+      NotificationType.verificationRejected => SolarIconsBold.dangerCircle,
+      NotificationType.general => SolarIconsBold.infoCircle,
     };
   }
 

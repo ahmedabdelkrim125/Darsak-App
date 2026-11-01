@@ -1,13 +1,18 @@
 import 'package:flutter/foundation.dart';
+import '../../../core/database/run_local.dart';
 import '../../../core/helper/date_formatter.dart';
+import '../../../core/helper/id_generator.dart';
 import '../../classroom/data/classroom_store.dart';
 import '../../classroom/data/models/classroom_group.dart';
 import '../../classroom/data/models/classroom_student.dart';
+import '../../notification/data/models/notification_type.dart';
+import '../../notification/data/notification_store.dart';
 import 'models/payment_entry.dart';
 import 'models/payment_filter.dart';
 import 'models/payment_group_summary.dart';
 import 'models/payment_record.dart';
 import 'models/payment_status.dart';
+import 'payments_local_source.dart';
 
 class PaymentsStore extends ChangeNotifier {
   PaymentsStore._();
@@ -15,7 +20,14 @@ class PaymentsStore extends ChangeNotifier {
   static final PaymentsStore instance = PaymentsStore._();
 
   final List<PaymentRecord> _records = [];
-  int _counter = 0;
+
+  Future<void> load() async {
+    final loaded = await PaymentsLocalSource.instance.load();
+    _records
+      ..clear()
+      ..addAll(loaded);
+    notifyListeners();
+  }
 
   List<PaymentRecord> recordsOf(String studentId, DateTime month) {
     final result = _records
@@ -134,15 +146,20 @@ class PaymentsStore extends ChangeNotifier {
     if (amount > entry.remaining) {
       return 'المبلغ أكبر من المتبقي (${entry.remaining} جنيه)';
     }
-    _records.add(
-      PaymentRecord(
-        id: '${++_counter}',
-        studentId: studentId,
-        groupId: entry.groupId,
-        month: DateFormatter.monthStart(month),
-        amount: amount,
-        paidAt: DateFormatter.dateOnly(paidAt),
-      ),
+    final record = PaymentRecord(
+      id: IdGenerator.newId(),
+      studentId: studentId,
+      groupId: entry.groupId,
+      month: DateFormatter.monthStart(month),
+      amount: amount,
+      paidAt: DateFormatter.dateOnly(paidAt),
+    );
+    _records.add(record);
+    runLocal(() => PaymentsLocalSource.instance.saveRecord(record));
+    NotificationStore.instance.add(
+      type: NotificationType.paymentReceived,
+      title: 'تم استلام دفعة',
+      body: 'تم تسجيل دفعة $amount جنيه من الطالب ${entry.studentName}',
     );
     notifyListeners();
     return null;
@@ -165,6 +182,7 @@ class PaymentsStore extends ChangeNotifier {
 
   void deleteRecord(String id) {
     _records.removeWhere((record) => record.id == id);
+    runLocal(() => PaymentsLocalSource.instance.deleteRecord(id));
     notifyListeners();
   }
 
