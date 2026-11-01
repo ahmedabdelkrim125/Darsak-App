@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../feat/attendance/data/attendance_store.dart';
 import '../../feat/classroom/data/classroom_store.dart';
+import '../../feat/notification/data/models/notification_type.dart';
 import '../../feat/notification/data/notification_store.dart';
 import '../../feat/payments/data/payments_store.dart';
 import '../database/app_database.dart';
 import '../helper/date_key.dart';
+import '../notifications/notification_service.dart';
 
 typedef _ToRemote =
     Future<Map<String, dynamic>?> Function(
@@ -493,7 +496,35 @@ class EntitySync {
     };
   }
 
-  Future<void> _applyNotification(AppDatabase db, Map<String, dynamic> j) {
+  Future<void> _applyNotification(
+    AppDatabase db,
+    Map<String, dynamic> j,
+  ) async {
+    final id = j['id'] as String;
+    final existing = await (db.select(
+      db.notifications,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    final createdAt = _dt(j['created_at']);
+    final fresh = DateTime.now().difference(createdAt) < const Duration(hours: 6);
+    final type = NotificationType.fromKey(j['type'] as String);
+    final shouldAlert =
+        existing == null &&
+        fresh &&
+        !((j['is_read'] as bool?) ?? false) &&
+        j['deleted_at'] == null &&
+        NotificationStore.isAllowed(type);
+    await _upsertNotification(db, j);
+    if (shouldAlert) {
+      unawaited(
+        NotificationService.instance.show(
+          title: j['title'] as String,
+          body: (j['body'] as String?) ?? '',
+        ),
+      );
+    }
+  }
+
+  Future<void> _upsertNotification(AppDatabase db, Map<String, dynamic> j) {
     return db
         .into(db.notifications)
         .insertOnConflictUpdate(

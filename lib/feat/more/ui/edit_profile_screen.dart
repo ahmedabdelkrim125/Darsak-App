@@ -64,7 +64,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     _session.updateProfile(
       fullName: _name.text,
-      email: _email.text,
+      email: _session.email,
       phone: _phone.text,
       bio: _bio.text,
       subject: _canEditSubject ? _subject.text : null,
@@ -108,7 +108,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               textInputAction: TextInputAction.next,
               textDirection: TextDirection.ltr,
               textAlign: TextAlign.right,
-              validator: AppValidators.email,
+              enabled: false,
+              helperText: 'لا يمكن تغيير البريد الإلكتروني من هنا',
               reserveErrorSpace: true,
             ),
             AppTextField(

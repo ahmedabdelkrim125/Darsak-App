@@ -67,6 +67,21 @@ class SyncService with WidgetsBindingObserver {
     }
   }
 
+  Future<void> flush() async {
+    if (_userId == null) return;
+    _debounceTimer?.cancel();
+    final deadline = DateTime.now().add(const Duration(seconds: 8));
+    while (_running && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+    }
+    if (_running) return;
+    try {
+      await sync().timeout(const Duration(seconds: 8));
+    } on Object catch (error) {
+      _log('flush: $error');
+    }
+  }
+
   void nudge() {
     if (_userId == null) return;
     _debounceTimer?.cancel();

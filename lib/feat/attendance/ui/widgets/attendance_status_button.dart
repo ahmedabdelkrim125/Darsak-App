@@ -41,23 +41,29 @@ class AttendanceStatusButton extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              status.icon,
-              size: 24.r,
-              color: selected ? color : palette.textSecondary,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  status.icon,
+                  size: 22.r,
+                  color: selected ? color : palette.textSecondary,
+                ),
+                horizontalSpace(width: 6),
+                Text(
+                  status.label,
+                  style: AppFonts.titleMedium.copyWith(
+                    fontSize: 15.sp,
+                    color: selected ? color : palette.textPrimary,
+                  ),
+                ),
+              ],
             ),
-            horizontalSpace(width: 8),
-            Text(
-              status.label,
-              style: AppFonts.titleMedium.copyWith(
-                fontSize: 16.sp,
-                color: selected ? color : palette.textPrimary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

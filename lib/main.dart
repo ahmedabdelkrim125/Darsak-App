@@ -4,6 +4,7 @@ import 'core/config/app_env.dart';
 import 'core/cubit/app_bloc_observer.dart';
 import 'core/di/service_locator.dart';
 import 'core/network/auth/session_expired_notifier.dart';
+import 'core/notifications/notification_service.dart';
 import 'core/routing/app_navigator.dart';
 import 'core/routing/routes.dart';
 import 'core/settings/app_settings.dart';
@@ -18,6 +19,7 @@ Future<void> main() async {
   setupServiceLocator();
   Bloc.observer = AppBlocObserver();
   await AppSettings.instance.load();
+  await NotificationService.instance.init();
   await getIt<AuthRepository>().restoreSession();
   _listenForSessionExpiry();
   runApp(const DarsakApp());
@@ -25,7 +27,7 @@ Future<void> main() async {
 
 void _listenForSessionExpiry() {
   getIt<SessionExpiredNotifier>().stream.listen((_) async {
-    await getIt<AuthRepository>().signOut();
+    await getIt<AuthRepository>().signOut(flush: false);
     ClassroomStore.instance.reset();
     PaymentsStore.instance.reset();
     AppNavigator.key.currentState?.pushNamedAndRemoveUntil(

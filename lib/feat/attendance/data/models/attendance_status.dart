@@ -1,5 +1,6 @@
 enum AttendanceStatus {
   present('present', 'حاضر'),
+  delayed('late', 'متأخر'),
   absent('absent', 'غائب');
 
   const AttendanceStatus(this.key, this.label);

@@ -1,13 +1,18 @@
 class AttendanceSummary {
-  const AttendanceSummary({required this.present, required this.absent});
+  const AttendanceSummary({
+    required this.present,
+    required this.absent,
+    this.delayed = 0,
+  });
 
   final int present;
   final int absent;
+  final int delayed;
 
-  int get total => present + absent;
+  int get total => present + delayed + absent;
 
   String get rateLabel {
     if (total == 0) return '—';
-    return '${(present * 100 / total).round()}%';
+    return '${((present + delayed) * 100 / total).round()}%';
   }
 }

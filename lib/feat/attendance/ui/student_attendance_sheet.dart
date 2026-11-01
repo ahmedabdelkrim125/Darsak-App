@@ -137,21 +137,17 @@ class _StudentAttendanceSheetState extends State<StudentAttendanceSheet> {
             verticalSpace(height: 12),
             Row(
               children: [
-                Expanded(
-                  child: AttendanceStatusButton(
-                    status: AttendanceStatus.present,
-                    selected: current == AttendanceStatus.present,
-                    onTap: () => _mark(AttendanceStatus.present),
+                for (final status in AttendanceStatus.values) ...[
+                  if (status != AttendanceStatus.values.first)
+                    horizontalSpace(width: 8),
+                  Expanded(
+                    child: AttendanceStatusButton(
+                      status: status,
+                      selected: current == status,
+                      onTap: () => _mark(status),
+                    ),
                   ),
-                ),
-                horizontalSpace(width: 10),
-                Expanded(
-                  child: AttendanceStatusButton(
-                    status: AttendanceStatus.absent,
-                    selected: current == AttendanceStatus.absent,
-                    onTap: () => _mark(AttendanceStatus.absent),
-                  ),
-                ),
+                ],
               ],
             ),
             verticalSpace(height: 8),

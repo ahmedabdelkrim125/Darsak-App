@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../../core/database/run_local.dart';
 import '../../../core/helper/id_generator.dart';
+import '../../../core/notifications/notification_service.dart';
+import '../../../core/settings/app_settings.dart';
 import 'models/notification_filter.dart';
 import 'models/notification_model.dart';
 import 'models/notification_type.dart';
@@ -51,6 +54,23 @@ class NotificationStore extends ChangeNotifier {
     _items.add(item);
     runLocal(() => NotificationLocalSource.instance.saveMany([item]));
     notifyListeners();
+    if (isAllowed(type)) {
+      unawaited(NotificationService.instance.show(title: title, body: body));
+    }
+  }
+
+  static bool isAllowed(NotificationType type) {
+    final settings = AppSettings.instance;
+    return switch (type) {
+      NotificationType.paymentReceived ||
+      NotificationType.paymentReminder => settings.notifyPayments,
+      NotificationType.studentJoined ||
+      NotificationType.studentAbsent ||
+      NotificationType.newMessage => settings.notifyGroups,
+      NotificationType.lessonUpcoming ||
+      NotificationType.scheduleChanged => settings.notifyLessons,
+      _ => true,
+    };
   }
 
   void setRead(String id, bool value) {

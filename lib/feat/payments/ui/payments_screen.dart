@@ -17,6 +17,7 @@ import '../data/models/payments_summary.dart';
 import '../data/models/payments_tab.dart';
 import '../data/payments_content.dart';
 import '../data/payments_store.dart';
+import 'group_payments_screen.dart';
 import 'payment_actions_sheet.dart';
 import 'payment_filter_sheet.dart';
 import 'payments_actions.dart';
@@ -71,10 +72,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
   }
 
   void _openGroup(String groupId) {
-    setState(() {
-      _filter = PaymentFilter(groupId: groupId);
-      _tab = PaymentsTab.students;
-    });
+    GroupPaymentsScreen.open(context, groupId: groupId, month: _month);
   }
 
   @override

@@ -15,6 +15,7 @@ import '../../../../core/network/error/api_messages.dart';
 import '../../../../core/network/models/profile_model.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/session/session_cache.dart';
+import '../../../../core/sync/sync_service.dart';
 import '../pending_signup.dart';
 
 class AuthRepository {
@@ -178,7 +179,8 @@ class AuthRepository {
     });
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut({bool flush = true}) async {
+    if (flush) await SyncService.instance.flush();
     _session.signOut();
     await _localData.close();
     await _cache.clear();

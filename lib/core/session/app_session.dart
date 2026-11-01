@@ -117,6 +117,19 @@ class AppSession extends ChangeNotifier {
     onLocalEdit?.call(false);
   }
 
+  void applyDraft({
+    String? fullName,
+    String? phone,
+    String? bio,
+    String? subject,
+  }) {
+    if (fullName != null) _fullName = _clean(fullName);
+    if (phone != null) _phone = phone.trim();
+    if (bio != null) _bio = bio.trim();
+    if (subject != null) _subject = _clean(subject);
+    notifyListeners();
+  }
+
   void updateSubject(String value) {
     _subject = _clean(value);
     notifyListeners();
