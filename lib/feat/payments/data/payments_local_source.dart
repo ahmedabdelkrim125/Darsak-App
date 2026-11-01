@@ -34,7 +34,7 @@ class PaymentsLocalSource {
       await _db
           .into(_db.payments)
           .insertOnConflictUpdate(
-            PaymentRowCompanion(
+            PaymentsCompanion(
               id: Value(record.id),
               groupId: Value(record.groupId),
               studentId: Value(record.studentId),
@@ -54,7 +54,7 @@ class PaymentsLocalSource {
     final now = DateTime.now();
     return _db.transaction(() async {
       await (_db.update(_db.payments)..where((t) => t.id.equals(id))).write(
-        PaymentRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        PaymentsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _db.markDirty('payments', id);
     });

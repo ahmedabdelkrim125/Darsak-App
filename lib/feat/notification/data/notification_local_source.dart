@@ -38,7 +38,7 @@ class NotificationLocalSource {
         await _db
             .into(_db.notifications)
             .insertOnConflictUpdate(
-              NotificationRowCompanion(
+              NotificationsCompanion(
                 id: Value(item.id),
                 type: Value(item.type.key),
                 title: Value(item.title),
@@ -60,7 +60,7 @@ class NotificationLocalSource {
     return _db.transaction(() async {
       await (_db.update(_db.notifications)..where((t) => t.id.equals(id)))
           .write(
-            NotificationRowCompanion(
+            NotificationsCompanion(
               deletedAt: Value(now),
               updatedAt: Value(now),
             ),

@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
       outbox,
     )..where((t) => t.entity.equals(entity) & t.entityId.equals(entityId))).go();
     await into(outbox).insert(
-      OutboxRowCompanion.insert(
+      OutboxCompanion.insert(
         entity: entity,
         entityId: entityId,
         createdAt: DateTime.now(),

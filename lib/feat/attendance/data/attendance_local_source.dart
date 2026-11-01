@@ -34,7 +34,7 @@ class AttendanceLocalSource {
       await _db
           .into(_db.attendanceRecords)
           .insertOnConflictUpdate(
-            AttendanceRowCompanion(
+            AttendanceRecordsCompanion(
               id: Value(record.id),
               groupId: Value(record.groupId),
               studentId: Value(record.studentId),
@@ -55,7 +55,7 @@ class AttendanceLocalSource {
       await (_db.update(
         _db.attendanceRecords,
       )..where((t) => t.id.equals(id))).write(
-        AttendanceRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        AttendanceRecordsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _db.markDirty('attendance', id);
     });

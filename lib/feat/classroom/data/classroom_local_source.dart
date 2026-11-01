@@ -94,7 +94,7 @@ class ClassroomLocalSource {
       await _db
           .into(_db.groups)
           .insertOnConflictUpdate(
-            GroupRowCompanion(
+            GroupsCompanion(
               id: Value(group.id),
               name: Value(group.name),
               subject: Value(group.subject),
@@ -113,18 +113,18 @@ class ClassroomLocalSource {
     final now = DateTime.now();
     return _db.transaction(() async {
       await (_db.update(_db.groups)..where((t) => t.id.equals(id))).write(
-        GroupRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        GroupsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _db.markDirty('groups', id);
       await (_db.update(
         _db.students,
       )..where((t) => t.groupId.equals(id) & t.deletedAt.isNull())).write(
-        StudentRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        StudentsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await (_db.update(
         _db.lessons,
       )..where((t) => t.groupId.equals(id) & t.deletedAt.isNull())).write(
-        LessonRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        LessonsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
     });
   }
@@ -138,7 +138,7 @@ class ClassroomLocalSource {
       await _db
           .into(_db.students)
           .insertOnConflictUpdate(
-            StudentRowCompanion(
+            StudentsCompanion(
               id: Value(student.id),
               groupId: Value(groupId),
               name: Value(student.name),
@@ -156,7 +156,7 @@ class ClassroomLocalSource {
     final now = DateTime.now();
     return _db.transaction(() async {
       await (_db.update(_db.students)..where((t) => t.id.equals(id))).write(
-        StudentRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        StudentsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _db.markDirty('students', id);
     });
@@ -168,7 +168,7 @@ class ClassroomLocalSource {
       await _db
           .into(_db.lessons)
           .insertOnConflictUpdate(
-            LessonRowCompanion(
+            LessonsCompanion(
               id: Value(lesson.id),
               groupId: Value(lesson.groupId),
               subject: Value(lesson.subject),
@@ -190,7 +190,7 @@ class ClassroomLocalSource {
     final now = DateTime.now();
     return _db.transaction(() async {
       await (_db.update(_db.lessons)..where((t) => t.id.equals(id))).write(
-        LessonRowCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        LessonsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
       );
       await _db.markDirty('lessons', id);
     });
