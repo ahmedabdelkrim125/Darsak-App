@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/di/service_locator.dart';
 import '../../../core/helper/extensions.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_palette.dart';
+import '../../auth/data/repo/auth_repository.dart';
 import 'widgets/splash_background.dart';
 import 'widgets/splash_logo.dart';
 import 'widgets/splash_orbit.dart';
@@ -42,6 +44,12 @@ class _SplashScreenState extends State<SplashScreen>
     final session = AppSession.instance;
     if (session.isSignedIn) {
       context.pushReplacementNamed(Routes.home, arguments: session.role);
+      return;
+    }
+    final pending = await getIt<AuthRepository>().pendingSignup();
+    if (!mounted) return;
+    if (pending != null) {
+      context.pushReplacementNamed(Routes.register, arguments: pending);
       return;
     }
     context.pushReplacementNamed(Routes.onboarding);

@@ -6,6 +6,7 @@ import '../../../../core/di/service_locator.dart';
 import '../../../../core/helper/spacing.dart';
 import '../../../../core/network/error/api_messages.dart';
 import '../../../../core/widgets/app_toast.dart';
+import '../../data/pending_signup.dart';
 import '../../data/repo/auth_repository.dart';
 import '../../forgot_password/ui/widgets/forgot_code_step.dart';
 import '../../widgets/auth_scaffold.dart';
@@ -23,23 +24,25 @@ import 'widgets/register_student_step.dart';
 import 'widgets/register_teacher_step.dart';
 
 class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key, required this.role});
+  const RegisterScreen({super.key, required this.role, this.pending});
 
   final UserRole role;
+  final PendingSignup? pending;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => RegisterCubit(getIt<AuthRepository>()),
-      child: _RegisterView(role: role),
+      child: _RegisterView(role: role, pending: pending),
     );
   }
 }
 
 class _RegisterView extends StatefulWidget {
-  const _RegisterView({required this.role});
+  const _RegisterView({required this.role, this.pending});
 
   final UserRole role;
+  final PendingSignup? pending;
 
   @override
   State<_RegisterView> createState() => _RegisterViewState();
@@ -66,6 +69,16 @@ class _RegisterViewState extends State<_RegisterView> {
   bool _forward = true;
 
   bool get _isTeacher => widget.role == UserRole.teacher;
+
+  @override
+  void initState() {
+    super.initState();
+    final pending = widget.pending;
+    if (pending != null) {
+      _email.text = pending.email;
+      _step = _codeStep;
+    }
+  }
 
   @override
   void dispose() {
@@ -108,6 +121,11 @@ class _RegisterViewState extends State<_RegisterView> {
       return;
     }
     FocusScope.of(context).unfocus();
+    if (_step == _codeStep) {
+      getIt<AuthRepository>().clearPendingSignup();
+      _goTo(widget.pending != null ? 0 : _securityStep);
+      return;
+    }
     _goTo(_step - 1);
   }
 

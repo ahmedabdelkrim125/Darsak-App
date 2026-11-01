@@ -9,4 +9,5 @@ class Routes {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String notifications = '/notifications';
+  static const String fullSchedule = '/full-schedule';
 }

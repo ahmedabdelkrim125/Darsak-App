@@ -1,0 +1,1468 @@
+diff --git a/lib/core/database/app_database.dart b/lib/core/database/app_database.dart
+index d7d37ae..8626dab 100644
+--- a/lib/core/database/app_database.dart
++++ b/lib/core/database/app_database.dart
+@@ -18,6 +18,8 @@ part 'app_database.g.dart';
+ class AppDatabase extends _$AppDatabase {
+   AppDatabase(super.executor);
+ 
++  static void Function()? onDirty;
++
+   @override
+   int get schemaVersion => 1;
+ 
+@@ -32,5 +34,6 @@ class AppDatabase extends _$AppDatabase {
+         createdAt: DateTime.now(),
+       ),
+     );
++    onDirty?.call();
+   }
+ }
+\ No newline at end of file
+diff --git a/lib/core/database/local_data_loader.dart b/lib/core/database/local_data_loader.dart
+index 01afc0a..6378b28 100644
+--- a/lib/core/database/local_data_loader.dart
++++ b/lib/core/database/local_data_loader.dart
+@@ -2,6 +2,7 @@ import '../../feat/attendance/data/attendance_store.dart';
+ import '../../feat/classroom/data/classroom_store.dart';
+ import '../../feat/notification/data/notification_store.dart';
+ import '../../feat/payments/data/payments_store.dart';
++import '../sync/sync_service.dart';
+ import 'database_provider.dart';
+ 
+ class LocalDataLoader {
+@@ -15,9 +16,11 @@ class LocalDataLoader {
+     await PaymentsStore.instance.load();
+     await AttendanceStore.instance.load();
+     await NotificationStore.instance.load();
++    SyncService.instance.start(userId);
+   }
+ 
+   Future<void> close() async {
++    await SyncService.instance.stop();
+     ClassroomStore.instance.reset();
+     PaymentsStore.instance.reset();
+     AttendanceStore.instance.reset();
+diff --git a/lib/core/routing/app_router.dart b/lib/core/routing/app_router.dart
+index c7c0cea..df7dc05 100644
+--- a/lib/core/routing/app_router.dart
++++ b/lib/core/routing/app_router.dart
+@@ -1,5 +1,7 @@
+ import 'package:flutter/material.dart';
++import '../../feat/auth/data/pending_signup.dart';
+ import '../../feat/notification/ui/notification_screen.dart';
++import '../../feat/schedule/ui/full_schedule_screen.dart';
+ import 'routes.dart';
+ import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
+ import '../../feat/auth/login/ui/login_screen.dart';
+@@ -27,6 +29,13 @@ class AppRouter {
+       case Routes.login:
+         return _fadeRoute(LoginScreen(role: _roleOf(settings)), settings);
+       case Routes.register:
++        final arguments = settings.arguments;
++        if (arguments is PendingSignup) {
++          return _fadeRoute(
++            RegisterScreen(role: arguments.role, pending: arguments),
++            settings,
++          );
++        }
+         return _fadeRoute(RegisterScreen(role: _roleOf(settings)), settings);
+       case Routes.forgotPassword:
+         return _fadeRoute(
+@@ -40,6 +49,11 @@ class AppRouter {
+           settings: settings,
+           builder: (_) => const NotificationScreen(),
+         );
++      case Routes.fullSchedule:
++        return MaterialPageRoute<void>(
++          settings: settings,
++          builder: (_) => const FullScheduleScreen(),
++        );
+       default:
+         return MaterialPageRoute<void>(
+           settings: settings,
+diff --git a/lib/core/routing/routes.dart b/lib/core/routing/routes.dart
+index d3f9528..0d084a4 100644
+--- a/lib/core/routing/routes.dart
++++ b/lib/core/routing/routes.dart
+@@ -9,4 +9,5 @@ class Routes {
+   static const String forgotPassword = '/forgot-password';
+   static const String home = '/home';
+   static const String notifications = '/notifications';
++  static const String fullSchedule = '/full-schedule';
+ }
+diff --git a/lib/core/session/app_session.dart b/lib/core/session/app_session.dart
+index 8f6597f..a5a9062 100644
+--- a/lib/core/session/app_session.dart
++++ b/lib/core/session/app_session.dart
+@@ -7,6 +7,8 @@ class AppSession extends ChangeNotifier {
+ 
+   static final AppSession instance = AppSession._();
+ 
++  static void Function(bool avatarChanged)? onLocalEdit;
++
+   String _userId = '';
+   UserRole? _role;
+   String _fullName = '';
+@@ -112,14 +114,24 @@ class AppSession extends ChangeNotifier {
+     _bio = bio.trim();
+     if (subject != null) _subject = _clean(subject);
+     notifyListeners();
++    onLocalEdit?.call(false);
+   }
+ 
+   void updateSubject(String value) {
+     _subject = _clean(value);
+     notifyListeners();
++    onLocalEdit?.call(false);
+   }
+ 
+   void setAvatar(String? path) {
++    if (_avatarPath == path) return;
++    _avatarPath = path;
++    notifyListeners();
++    onLocalEdit?.call(true);
++  }
++
++  void applyAvatar(String? path) {
++    if (_avatarPath == path) return;
+     _avatarPath = path;
+     notifyListeners();
+   }
+diff --git a/lib/core/sync/entity_sync.dart b/lib/core/sync/entity_sync.dart
+new file mode 100644
+index 0000000..793a034
+--- /dev/null
++++ b/lib/core/sync/entity_sync.dart
+@@ -0,0 +1,509 @@
++import 'package:dio/dio.dart';
++import 'package:drift/drift.dart';
++import '../../feat/attendance/data/attendance_store.dart';
++import '../../feat/classroom/data/classroom_store.dart';
++import '../../feat/notification/data/notification_store.dart';
++import '../../feat/payments/data/payments_store.dart';
++import '../database/app_database.dart';
++import '../helper/date_key.dart';
++
++typedef _ToRemote =
++    Future<Map<String, dynamic>?> Function(
++      AppDatabase db,
++      String id,
++      String userId,
++    );
++typedef _Apply = Future<void> Function(AppDatabase db, Map<String, dynamic> j);
++
++class _Entity {
++  const _Entity({
++    required this.key,
++    required this.table,
++    required this.toRemote,
++    required this.apply,
++    required this.reload,
++  });
++
++  final String key;
++  final String table;
++  final _ToRemote toRemote;
++  final _Apply apply;
++  final Future<void> Function() reload;
++}
++
++class EntitySync {
++  EntitySync(this._dio);
++
++  final Dio _dio;
++
++  static const int _pageSize = 500;
++  static const int _batchSize = 100;
++  static const int _maxAttempts = 3;
++  static final RegExp _usernamePattern = RegExp(r'^[a-z][a-z0-9_.]{2,19}$');
++
++  late final List<_Entity> _entities = [
++    _Entity(
++      key: 'groups',
++      table: 'groups',
++      toRemote: _groupToRemote,
++      apply: _applyGroup,
++      reload: ClassroomStore.instance.load,
++    ),
++    _Entity(
++      key: 'students',
++      table: 'students',
++      toRemote: _studentToRemote,
++      apply: _applyStudent,
++      reload: ClassroomStore.instance.load,
++    ),
++    _Entity(
++      key: 'lessons',
++      table: 'lessons',
++      toRemote: _lessonToRemote,
++      apply: _applyLesson,
++      reload: ClassroomStore.instance.load,
++    ),
++    _Entity(
++      key: 'payments',
++      table: 'payments',
++      toRemote: _paymentToRemote,
++      apply: _applyPayment,
++      reload: PaymentsStore.instance.load,
++    ),
++    _Entity(
++      key: 'attendance',
++      table: 'attendance',
++      toRemote: _attendanceToRemote,
++      apply: _applyAttendance,
++      reload: AttendanceStore.instance.load,
++    ),
++    _Entity(
++      key: 'notifications',
++      table: 'notifications',
++      toRemote: _notificationToRemote,
++      apply: _applyNotification,
++      reload: NotificationStore.instance.load,
++    ),
++  ];
++
++  Future<void> resetFailed(AppDatabase db) {
++    return (db.update(db.outbox)..where((t) => t.failed.equals(true))).write(
++      const OutboxCompanion(failed: Value(false), attempts: Value(0)),
++    );
++  }
++
++  Future<void> push(AppDatabase db, String userId) async {
++    final rows =
++        await (db.select(db.outbox)
++              ..where((t) => t.failed.equals(false))
++              ..orderBy([(t) => OrderingTerm.asc(t.id)]))
++            .get();
++    if (rows.isEmpty) return;
++
++    for (final entity in _entities) {
++      final pending = rows.where((row) => row.entity == entity.key).toList();
++      for (var from = 0; from < pending.length; from += _batchSize) {
++        final end = from + _batchSize > pending.length
++            ? pending.length
++            : from + _batchSize;
++        await _pushBatch(db, entity, pending.sublist(from, end), userId);
++      }
++    }
++  }
++
++  Future<void> _pushBatch(
++    AppDatabase db,
++    _Entity entity,
++    List<OutboxRow> batch,
++    String userId,
++  ) async {
++    final payload = <Map<String, dynamic>>[];
++    final sent = <OutboxRow>[];
++    for (final row in batch) {
++      final map = await entity.toRemote(db, row.entityId, userId);
++      if (map == null) {
++        await _drop(db, row.id);
++        continue;
++      }
++      payload.add(map);
++      sent.add(row);
++    }
++    if (payload.isEmpty) return;
++
++    try {
++      await _upsert(entity.table, payload);
++      for (final row in sent) {
++        await _drop(db, row.id);
++      }
++    } on DioException catch (error) {
++      if (!_isRejection(error)) rethrow;
++      for (var i = 0; i < payload.length; i++) {
++        try {
++          await _upsert(entity.table, [payload[i]]);
++          await _drop(db, sent[i].id);
++        } on DioException catch (single) {
++          if (!_isRejection(single)) rethrow;
++          await _fail(db, sent[i], single);
++        }
++      }
++    }
++  }
++
++  Future<void> _upsert(String table, List<Map<String, dynamic>> rows) {
++    return _dio.post<dynamic>(
++      '/rest/v1/$table',
++      queryParameters: {'on_conflict': 'id'},
++      data: rows,
++      options: Options(
++        headers: {'Prefer': 'resolution=merge-duplicates,return=minimal'},
++      ),
++    );
++  }
++
++  bool _isRejection(DioException error) {
++    final code = error.response?.statusCode;
++    if (code == null) return false;
++    return code >= 400 && code < 500 && code != 401 && code != 408 && code != 429;
++  }
++
++  Future<void> _drop(AppDatabase db, int outboxId) {
++    return (db.delete(db.outbox)..where((t) => t.id.equals(outboxId))).go();
++  }
++
++  Future<void> _fail(AppDatabase db, OutboxRow row, DioException error) {
++    final attempts = row.attempts + 1;
++    final body = '${error.response?.data}';
++    return (db.update(db.outbox)..where((t) => t.id.equals(row.id))).write(
++      OutboxCompanion(
++        attempts: Value(attempts),
++        failed: Value(attempts >= _maxAttempts),
++        lastError: Value(body.length > 300 ? body.substring(0, 300) : body),
++      ),
++    );
++  }
++
++  Future<void> pull(AppDatabase db) async {
++    final reloads = <Future<void> Function()>{};
++    for (final entity in _entities) {
++      final changed = await _pullEntity(db, entity);
++      if (changed) reloads.add(entity.reload);
++    }
++    for (final reload in reloads) {
++      await reload();
++    }
++  }
++
++  Future<bool> _pullEntity(AppDatabase db, _Entity entity) async {
++    var changed = false;
++    var cursor = await _cursor(db, entity.key);
++    while (true) {
++      final response = await _dio.get<List<dynamic>>(
++        '/rest/v1/${entity.table}',
++        queryParameters: {
++          'select': '*',
++          'order': 'updated_at.asc',
++          'limit': '$_pageSize',
++          if (cursor != null) 'updated_at': 'gt.$cursor',
++        },
++      );
++      final rows = response.data ?? const <dynamic>[];
++      if (rows.isEmpty) break;
++      final dirty = await _dirtyIds(db, entity.key);
++      for (final item in rows) {
++        final json = Map<String, dynamic>.from(item as Map);
++        if (dirty.contains(json['id'])) continue;
++        await entity.apply(db, json);
++        changed = true;
++      }
++      cursor = (rows.last as Map)['updated_at'] as String;
++      await _saveCursor(db, entity.key, cursor);
++      if (rows.length < _pageSize) break;
++    }
++    return changed;
++  }
++
++  Future<Set<String>> _dirtyIds(AppDatabase db, String entity) async {
++    final rows = await (db.select(
++      db.outbox,
++    )..where((t) => t.entity.equals(entity))).get();
++    return {for (final row in rows) row.entityId};
++  }
++
++  Future<String?> _cursor(AppDatabase db, String entity) async {
++    final row = await (db.select(
++      db.syncCursors,
++    )..where((t) => t.entity.equals(entity))).getSingleOrNull();
++    return row?.cursor;
++  }
++
++  Future<void> _saveCursor(AppDatabase db, String entity, String cursor) {
++    return db
++        .into(db.syncCursors)
++        .insertOnConflictUpdate(
++          SyncCursorsCompanion(entity: Value(entity), cursor: Value(cursor)),
++        );
++  }
++
++  String _iso(DateTime value) => value.toUtc().toIso8601String();
++
++  String? _isoOrNull(DateTime? value) => value == null ? null : _iso(value);
++
++  DateTime _dt(Object? value) => DateTime.parse(value as String).toLocal();
++
++  DateTime? _dtOrNull(Object? value) {
++    return value is String ? DateTime.parse(value).toLocal() : null;
++  }
++
++  String _hms(int minutes) {
++    final h = (minutes ~/ 60).toString().padLeft(2, '0');
++    final m = (minutes % 60).toString().padLeft(2, '0');
++    return '$h:$m:00';
++  }
++
++  int _minutes(Object? value) {
++    final parts = '$value'.split(':');
++    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
++  }
++
++  Future<Map<String, dynamic>?> _groupToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.groups,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    return {
++      'id': row.id,
++      'teacher_id': userId,
++      'name': row.name,
++      'subject': row.subject,
++      'school_year': row.schoolYear,
++      'monthly_fee': row.monthlyFee,
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyGroup(AppDatabase db, Map<String, dynamic> j) {
++    return db
++        .into(db.groups)
++        .insertOnConflictUpdate(
++          GroupsCompanion(
++            id: Value(j['id'] as String),
++            name: Value(j['name'] as String),
++            subject: Value(j['subject'] as String),
++            schoolYear: Value(j['school_year'] as String),
++            monthlyFee: Value(j['monthly_fee'] as int),
++            joinCode: Value(j['join_code'] as String?),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++
++  Future<Map<String, dynamic>?> _studentToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.students,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    final username = row.username;
++    return {
++      'id': row.id,
++      'teacher_id': userId,
++      'group_id': row.groupId,
++      'name': row.name,
++      'username': username != null && _usernamePattern.hasMatch(username)
++          ? username
++          : null,
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyStudent(AppDatabase db, Map<String, dynamic> j) {
++    return db
++        .into(db.students)
++        .insertOnConflictUpdate(
++          StudentsCompanion(
++            id: Value(j['id'] as String),
++            groupId: Value(j['group_id'] as String),
++            name: Value(j['name'] as String),
++            username: Value(j['username'] as String?),
++            userId: Value(j['user_id'] as String?),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++
++  Future<Map<String, dynamic>?> _lessonToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.lessons,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    return {
++      'id': row.id,
++      'teacher_id': userId,
++      'group_id': row.groupId,
++      'subject': row.subject,
++      'start_time': _hms(row.startMinutes),
++      'end_time': _hms(row.endMinutes),
++      'weekdays': row.weekdays
++          .split(',')
++          .where((part) => part.isNotEmpty)
++          .map(int.parse)
++          .toList(),
++      'place_type': row.placeType,
++      'place_name': row.placeName,
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyLesson(AppDatabase db, Map<String, dynamic> j) {
++    final weekdays = (j['weekdays'] as List).map((day) => '$day').join(',');
++    return db
++        .into(db.lessons)
++        .insertOnConflictUpdate(
++          LessonsCompanion(
++            id: Value(j['id'] as String),
++            groupId: Value(j['group_id'] as String),
++            subject: Value(j['subject'] as String),
++            startMinutes: Value(_minutes(j['start_time'])),
++            endMinutes: Value(_minutes(j['end_time'])),
++            weekdays: Value(weekdays),
++            placeType: Value(j['place_type'] as String),
++            placeName: Value((j['place_name'] as String?) ?? ''),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++
++  Future<Map<String, dynamic>?> _paymentToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.payments,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    final month = DateKey.parse(row.month);
++    return {
++      'id': row.id,
++      'teacher_id': userId,
++      'group_id': row.groupId,
++      'student_id': row.studentId,
++      'month': DateKey.of(DateTime(month.year, month.month, 1)),
++      'amount': row.amount,
++      'paid_at': row.paidAt,
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyPayment(AppDatabase db, Map<String, dynamic> j) {
++    return db
++        .into(db.payments)
++        .insertOnConflictUpdate(
++          PaymentsCompanion(
++            id: Value(j['id'] as String),
++            groupId: Value(j['group_id'] as String),
++            studentId: Value(j['student_id'] as String),
++            month: Value(j['month'] as String),
++            amount: Value(j['amount'] as int),
++            paidAt: Value(j['paid_at'] as String),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++
++  Future<Map<String, dynamic>?> _attendanceToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.attendanceRecords,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    return {
++      'id': row.id,
++      'teacher_id': userId,
++      'group_id': row.groupId,
++      'student_id': row.studentId,
++      'attendance_date': row.attendanceDate,
++      'status': row.status,
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyAttendance(AppDatabase db, Map<String, dynamic> j) {
++    return db
++        .into(db.attendanceRecords)
++        .insertOnConflictUpdate(
++          AttendanceRecordsCompanion(
++            id: Value(j['id'] as String),
++            groupId: Value(j['group_id'] as String),
++            studentId: Value(j['student_id'] as String),
++            attendanceDate: Value(j['attendance_date'] as String),
++            status: Value(j['status'] as String),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++
++  Future<Map<String, dynamic>?> _notificationToRemote(
++    AppDatabase db,
++    String id,
++    String userId,
++  ) async {
++    final row = await (db.select(
++      db.notifications,
++    )..where((t) => t.id.equals(id))).getSingleOrNull();
++    if (row == null) return null;
++    return {
++      'id': row.id,
++      'user_id': userId,
++      'type': row.type,
++      'title': row.title,
++      'body': row.body,
++      'pinned': row.pinned,
++      'is_read': row.isRead,
++      'created_at': _iso(row.createdAt),
++      'deleted_at': _isoOrNull(row.deletedAt),
++    };
++  }
++
++  Future<void> _applyNotification(AppDatabase db, Map<String, dynamic> j) {
++    return db
++        .into(db.notifications)
++        .insertOnConflictUpdate(
++          NotificationsCompanion(
++            id: Value(j['id'] as String),
++            type: Value(j['type'] as String),
++            title: Value(j['title'] as String),
++            body: Value((j['body'] as String?) ?? ''),
++            pinned: Value((j['pinned'] as bool?) ?? false),
++            isRead: Value((j['is_read'] as bool?) ?? false),
++            createdAt: Value(_dt(j['created_at'])),
++            updatedAt: Value(_dt(j['updated_at'])),
++            deletedAt: Value(_dtOrNull(j['deleted_at'])),
++          ),
++        );
++  }
++}
+diff --git a/lib/core/sync/profile_sync.dart b/lib/core/sync/profile_sync.dart
+new file mode 100644
+index 0000000..6cb23ab
+--- /dev/null
++++ b/lib/core/sync/profile_sync.dart
+@@ -0,0 +1,200 @@
++import 'dart:io';
++import 'package:dio/dio.dart';
++import 'package:path_provider/path_provider.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++import '../network/models/profile_model.dart';
++import '../session/app_session.dart';
++
++class ProfileSync {
++  ProfileSync(this._dio);
++
++  final Dio _dio;
++
++  static const int _maxAvatarBytes = 3 * 1024 * 1024;
++
++  AppSession get _session => AppSession.instance;
++
++  String _key(String name, String userId) => 'sync_${name}_$userId';
++
++  Future<void> markDirty(String userId, {required bool avatar}) async {
++    final prefs = await SharedPreferences.getInstance();
++    await prefs.setBool(_key('profile_dirty', userId), true);
++    if (avatar) await prefs.setBool(_key('avatar_dirty', userId), true);
++  }
++
++  Future<void> sync(String userId) async {
++    final prefs = await SharedPreferences.getInstance();
++    final remote = await _fetch(userId);
++    if (remote == null) return;
++    await _reconcile(prefs, userId, remote);
++    await _push(prefs, userId, remote);
++    await _pull(prefs, userId);
++  }
++
++  Future<ProfileModel?> _fetch(String userId) async {
++    final response = await _dio.get<List<dynamic>>(
++      '/rest/v1/profiles',
++      queryParameters: {'id': 'eq.$userId', 'select': '*'},
++    );
++    final rows = response.data ?? const <dynamic>[];
++    if (rows.isEmpty) return null;
++    return ProfileModel.fromJson(Map<String, dynamic>.from(rows.first as Map));
++  }
++
++  Future<void> _reconcile(
++    SharedPreferences prefs,
++    String userId,
++    ProfileModel remote,
++  ) async {
++    final marker = _key('reconciled', userId);
++    if (prefs.getBool(marker) ?? false) return;
++    final differs =
++        _session.fullName.trim() != remote.fullName.trim() ||
++        _session.phone.trim() != remote.phone.trim() ||
++        _session.bio.trim() != remote.bio.trim() ||
++        _session.subject.trim() != remote.subject.trim();
++    final localAvatar = _session.avatarPath;
++    final hasLocalAvatar =
++        localAvatar != null &&
++        remote.avatarPath == null &&
++        File(localAvatar).existsSync();
++    if (differs) await prefs.setBool(_key('profile_dirty', userId), true);
++    if (hasLocalAvatar) {
++      await prefs.setBool(_key('profile_dirty', userId), true);
++      await prefs.setBool(_key('avatar_dirty', userId), true);
++    }
++    await prefs.setBool(marker, true);
++  }
++
++  Future<void> _push(
++    SharedPreferences prefs,
++    String userId,
++    ProfileModel remote,
++  ) async {
++    final dirtyKey = _key('profile_dirty', userId);
++    if (!(prefs.getBool(dirtyKey) ?? false)) return;
++
++    final avatarKey = _key('avatar_dirty', userId);
++    final remoteKey = _key('avatar_remote', userId);
++    var avatarRemote = prefs.getString(remoteKey) ?? remote.avatarPath;
++    final body = <String, dynamic>{
++      'full_name': _session.fullName,
++      'phone': _session.phone,
++      'bio': _session.bio,
++      'subject': _session.subject,
++    };
++
++    if (prefs.getBool(avatarKey) ?? false) {
++      final local = _session.avatarPath;
++      if (local == null) {
++        final old = avatarRemote;
++        body['avatar_path'] = null;
++        avatarRemote = null;
++        if (old != null) await _deleteRemote(old);
++      } else {
++        final uploaded = await _upload(userId, local);
++        if (uploaded != null) {
++          final old = avatarRemote;
++          body['avatar_path'] = uploaded;
++          avatarRemote = uploaded;
++          if (old != null && old != uploaded) await _deleteRemote(old);
++        }
++      }
++    }
++
++    await _dio.patch<dynamic>(
++      '/rest/v1/profiles',
++      queryParameters: {'id': 'eq.$userId'},
++      data: body,
++      options: Options(headers: {'Prefer': 'return=minimal'}),
++    );
++
++    if (avatarRemote == null) {
++      await prefs.remove(remoteKey);
++    } else {
++      await prefs.setString(remoteKey, avatarRemote);
++    }
++    await prefs.remove(avatarKey);
++    await prefs.remove(dirtyKey);
++  }
++
++  Future<String?> _upload(String userId, String localPath) async {
++    final file = File(localPath);
++    if (!file.existsSync()) return null;
++    final bytes = await file.readAsBytes();
++    if (bytes.length > _maxAvatarBytes) return null;
++    final extension = localPath.split('.').last.toLowerCase();
++    final mime = switch (extension) {
++      'png' => 'image/png',
++      'webp' => 'image/webp',
++      'jpg' || 'jpeg' => 'image/jpeg',
++      _ => null,
++    };
++    if (mime == null) return null;
++    final path = '$userId/avatar_${DateTime.now().millisecondsSinceEpoch}.$extension';
++    await _dio.post<dynamic>(
++      '/storage/v1/object/avatars/$path',
++      data: Stream.fromIterable(bytes.map((byte) => [byte])),
++      options: Options(
++        headers: {
++          Headers.contentLengthHeader: bytes.length,
++          Headers.contentTypeHeader: mime,
++          'x-upsert': 'true',
++        },
++      ),
++    );
++    return path;
++  }
++
++  Future<void> _deleteRemote(String path) async {
++    try {
++      await _dio.delete<dynamic>('/storage/v1/object/avatars/$path');
++    } on DioException {
++      return;
++    }
++  }
++
++  Future<void> _pull(SharedPreferences prefs, String userId) async {
++    if (prefs.getBool(_key('profile_dirty', userId)) ?? false) return;
++    final remote = await _fetch(userId);
++    if (remote == null) return;
++    _session.applyProfile(remote);
++
++    final remoteKey = _key('avatar_remote', userId);
++    final known = prefs.getString(remoteKey);
++    final path = remote.avatarPath;
++    if (path == known) return;
++
++    if (path == null) {
++      _session.applyAvatar(null);
++      await prefs.remove(remoteKey);
++      return;
++    }
++
++    final local = await _download(userId, path);
++    if (local == null) return;
++    final previous = _session.avatarPath;
++    _session.applyAvatar(local);
++    await prefs.setString(remoteKey, path);
++    if (previous != null && previous != local && previous.contains('avatar_')) {
++      final old = File(previous);
++      if (old.existsSync()) await old.delete();
++    }
++  }
++
++  Future<String?> _download(String userId, String path) async {
++    final response = await _dio.get<List<int>>(
++      '/storage/v1/object/authenticated/avatars/$path',
++      options: Options(responseType: ResponseType.bytes),
++    );
++    final bytes = response.data;
++    if (bytes == null || bytes.isEmpty) return null;
++    final directory = await getApplicationDocumentsDirectory();
++    final extension = path.split('.').last;
++    final file = File(
++      '${directory.path}/avatar_${userId}_${DateTime.now().millisecondsSinceEpoch}.$extension',
++    );
++    await file.writeAsBytes(bytes);
++    return file.path;
++  }
++}
+diff --git a/lib/core/sync/sync_service.dart b/lib/core/sync/sync_service.dart
+new file mode 100644
+index 0000000..7c99410
+--- /dev/null
++++ b/lib/core/sync/sync_service.dart
+@@ -0,0 +1,147 @@
++import 'dart:async';
++import 'package:dio/dio.dart';
++import 'package:flutter/foundation.dart';
++import 'package:flutter/widgets.dart';
++import '../database/app_database.dart';
++import '../database/database_provider.dart';
++import '../di/service_locator.dart';
++import '../network/network_info.dart';
++import '../session/app_session.dart';
++import 'entity_sync.dart';
++import 'profile_sync.dart';
++
++class SyncService with WidgetsBindingObserver {
++  SyncService._();
++
++  static final SyncService instance = SyncService._();
++
++  static const Duration _interval = Duration(seconds: 45);
++  static const Duration _debounce = Duration(milliseconds: 1500);
++
++  String? _userId;
++  Timer? _periodic;
++  Timer? _debounceTimer;
++  StreamSubscription<bool>? _connectivity;
++  bool _running = false;
++  bool _again = false;
++  bool _observing = false;
++
++  void start(String userId) {
++    if (_userId == userId) {
++      nudge();
++      return;
++    }
++    _teardown();
++    _userId = userId;
++    AppDatabase.onDirty = nudge;
++    AppSession.onLocalEdit = _onProfileEdit;
++    if (!_observing) {
++      WidgetsBinding.instance.addObserver(this);
++      _observing = true;
++    }
++    _connectivity = getIt<NetworkInfo>().onChanged.listen((connected) {
++      if (connected) nudge();
++    });
++    _periodic = Timer.periodic(_interval, (_) => nudge());
++    unawaited(_resetFailedThenSync(userId));
++  }
++
++  Future<void> stop() async {
++    _teardown();
++  }
++
++  void _teardown() {
++    _userId = null;
++    AppDatabase.onDirty = null;
++    AppSession.onLocalEdit = null;
++    _debounceTimer?.cancel();
++    _periodic?.cancel();
++    final subscription = _connectivity;
++    if (subscription != null) unawaited(subscription.cancel());
++    _debounceTimer = null;
++    _periodic = null;
++    _connectivity = null;
++    if (_observing) {
++      WidgetsBinding.instance.removeObserver(this);
++      _observing = false;
++    }
++  }
++
++  void nudge() {
++    if (_userId == null) return;
++    _debounceTimer?.cancel();
++    _debounceTimer = Timer(_debounce, () => unawaited(sync()));
++  }
++
++  @override
++  void didChangeAppLifecycleState(AppLifecycleState state) {
++    if (state == AppLifecycleState.resumed) nudge();
++  }
++
++  void _onProfileEdit(bool avatarChanged) {
++    final userId = _userId;
++    if (userId == null) return;
++    unawaited(
++      ProfileSync(getIt<Dio>())
++          .markDirty(userId, avatar: avatarChanged)
++          .then((_) => nudge()),
++    );
++  }
++
++  Future<void> _resetFailedThenSync(String userId) async {
++    try {
++      final db = DatabaseProvider.instance.db;
++      await EntitySync(getIt<Dio>()).resetFailed(db);
++    } on Object catch (error) {
++      _log('reset failed: $error');
++    }
++    if (_userId == userId) await sync();
++  }
++
++  Future<void> sync() async {
++    final userId = _userId;
++    if (userId == null) return;
++    if (_running) {
++      _again = true;
++      return;
++    }
++    _running = true;
++    try {
++      if (!await getIt<NetworkInfo>().isConnected) return;
++      final dio = getIt<Dio>();
++      final entities = EntitySync(dio);
++      final profile = ProfileSync(dio);
++
++      await _guard('profile', () => profile.sync(userId), userId);
++      await _guard('push', () async {
++        await entities.push(DatabaseProvider.instance.db, userId);
++      }, userId);
++      await _guard('pull', () async {
++        await entities.pull(DatabaseProvider.instance.db);
++      }, userId);
++    } finally {
++      _running = false;
++      if (_again) {
++        _again = false;
++        nudge();
++      }
++    }
++  }
++
++  Future<void> _guard(
++    String label,
++    Future<void> Function() task,
++    String userId,
++  ) async {
++    if (_userId != userId || DatabaseProvider.instance.userId != userId) return;
++    try {
++      await task();
++    } on Object catch (error) {
++      _log('$label: $error');
++    }
++  }
++
++  void _log(String message) {
++    if (kDebugMode) debugPrint('[Sync] $message');
++  }
++}
+diff --git a/lib/feat/auth/data/pending_signup.dart b/lib/feat/auth/data/pending_signup.dart
+new file mode 100644
+index 0000000..fb11de7
+--- /dev/null
++++ b/lib/feat/auth/data/pending_signup.dart
+@@ -0,0 +1,57 @@
++import 'dart:convert';
++import 'package:shared_preferences/shared_preferences.dart';
++import '../../../core/const/user_role.dart';
++
++class PendingSignup {
++  const PendingSignup({required this.role, required this.email});
++
++  final UserRole role;
++  final String email;
++}
++
++class PendingSignupStore {
++  static const String _key = 'pending_signup';
++  static const Duration _lifetime = Duration(minutes: 55);
++
++  Future<void> save({required UserRole role, required String email}) async {
++    final prefs = await SharedPreferences.getInstance();
++    await prefs.setString(
++      _key,
++      jsonEncode({
++        'role': role.name,
++        'email': email,
++        'at': DateTime.now().toIso8601String(),
++      }),
++    );
++  }
++
++  Future<PendingSignup?> read() async {
++    final prefs = await SharedPreferences.getInstance();
++    final raw = prefs.getString(_key);
++    if (raw == null) return null;
++    try {
++      final json = jsonDecode(raw);
++      if (json is! Map) return null;
++      final at = DateTime.tryParse('${json['at']}');
++      final email = '${json['email'] ?? ''}';
++      final role = UserRole.values
++          .where((value) => value.name == json['role'])
++          .firstOrNull;
++      final expired =
++          at == null || DateTime.now().difference(at) > _lifetime;
++      if (expired || email.isEmpty || role == null) {
++        await prefs.remove(_key);
++        return null;
++      }
++      return PendingSignup(role: role, email: email);
++    } on FormatException {
++      await prefs.remove(_key);
++      return null;
++    }
++  }
++
++  Future<void> clear() async {
++    final prefs = await SharedPreferences.getInstance();
++    await prefs.remove(_key);
++  }
++}
+diff --git a/lib/feat/auth/data/repo/auth_repository.dart b/lib/feat/auth/data/repo/auth_repository.dart
+index 25021db..c7c22c7 100644
+--- a/lib/feat/auth/data/repo/auth_repository.dart
++++ b/lib/feat/auth/data/repo/auth_repository.dart
+@@ -15,6 +15,7 @@ import '../../../../core/network/error/api_messages.dart';
+ import '../../../../core/network/models/profile_model.dart';
+ import '../../../../core/session/app_session.dart';
+ import '../../../../core/session/session_cache.dart';
++import '../pending_signup.dart';
+ 
+ class AuthRepository {
+   AuthRepository({
+@@ -34,6 +35,7 @@ class AuthRepository {
+   }
+ 
+   final LocalDataLoader _localData;
++  final PendingSignupStore _pending = PendingSignupStore();
+ 
+   final AuthApi _authApi;
+   final ProfileApi _profileApi;
+@@ -92,7 +94,10 @@ class AuthRepository {
+       }
+ 
+       final tokens = response.tokens;
+-      if (tokens == null) return true;
++      if (tokens == null) {
++        await _pending.save(role: role, email: cleanEmail);
++        return true;
++      }
+       await _openSession(tokens, response.user.id);
+       return false;
+     });
+@@ -111,9 +116,14 @@ class AuthRepository {
+       final tokens = response.tokens;
+       if (tokens == null) throw _error(ApiErrorType.parsing, 'parsing');
+       await _openSession(tokens, response.user.id);
++      await _pending.clear();
+     });
+   }
+ 
++  Future<PendingSignup?> pendingSignup() => _pending.read();
++
++  Future<void> clearPendingSignup() => _pending.clear();
++
+   Future<ApiResult<void>> resendSignupCode(String email) {
+     return ApiGuard.run(
+       () => _authApi.resend({'type': 'signup', 'email': email.trim()}),
+diff --git a/lib/feat/auth/login/ui/login_screen.dart b/lib/feat/auth/login/ui/login_screen.dart
+index a22c01a..81a544a 100644
+--- a/lib/feat/auth/login/ui/login_screen.dart
++++ b/lib/feat/auth/login/ui/login_screen.dart
+@@ -65,7 +65,11 @@ class _LoginViewState extends State<_LoginView> {
+ 
+   void _onState(BuildContext context, RequestState<UserRole> state) {
+     if (state.isSuccess) {
+-      context.pushReplacementNamed(Routes.home, arguments: widget.role);
++      context.pushNamedAndRemoveUntil(
++        Routes.home,
++        arguments: widget.role,
++        predicate: (route) => false,
++      );
+     } else if (state.isFailure) {
+       AppToast.show(context, state.error?.message ?? ApiMessages.unknown);
+     }
+diff --git a/lib/feat/auth/register/ui/register_screen.dart b/lib/feat/auth/register/ui/register_screen.dart
+index e3df878..e880240 100644
+--- a/lib/feat/auth/register/ui/register_screen.dart
++++ b/lib/feat/auth/register/ui/register_screen.dart
+@@ -6,6 +6,7 @@ import '../../../../core/di/service_locator.dart';
+ import '../../../../core/helper/spacing.dart';
+ import '../../../../core/network/error/api_messages.dart';
+ import '../../../../core/widgets/app_toast.dart';
++import '../../data/pending_signup.dart';
+ import '../../data/repo/auth_repository.dart';
+ import '../../forgot_password/ui/widgets/forgot_code_step.dart';
+ import '../../widgets/auth_scaffold.dart';
+@@ -23,23 +24,25 @@ import 'widgets/register_student_step.dart';
+ import 'widgets/register_teacher_step.dart';
+ 
+ class RegisterScreen extends StatelessWidget {
+-  const RegisterScreen({super.key, required this.role});
++  const RegisterScreen({super.key, required this.role, this.pending});
+ 
+   final UserRole role;
++  final PendingSignup? pending;
+ 
+   @override
+   Widget build(BuildContext context) {
+     return BlocProvider(
+       create: (_) => RegisterCubit(getIt<AuthRepository>()),
+-      child: _RegisterView(role: role),
++      child: _RegisterView(role: role, pending: pending),
+     );
+   }
+ }
+ 
+ class _RegisterView extends StatefulWidget {
+-  const _RegisterView({required this.role});
++  const _RegisterView({required this.role, this.pending});
+ 
+   final UserRole role;
++  final PendingSignup? pending;
+ 
+   @override
+   State<_RegisterView> createState() => _RegisterViewState();
+@@ -67,6 +70,16 @@ class _RegisterViewState extends State<_RegisterView> {
+ 
+   bool get _isTeacher => widget.role == UserRole.teacher;
+ 
++  @override
++  void initState() {
++    super.initState();
++    final pending = widget.pending;
++    if (pending != null) {
++      _email.text = pending.email;
++      _step = _codeStep;
++    }
++  }
++
+   @override
+   void dispose() {
+     _fullName.dispose();
+@@ -108,6 +121,11 @@ class _RegisterViewState extends State<_RegisterView> {
+       return;
+     }
+     FocusScope.of(context).unfocus();
++    if (_step == _codeStep) {
++      getIt<AuthRepository>().clearPendingSignup();
++      _goTo(widget.pending != null ? 0 : _securityStep);
++      return;
++    }
+     _goTo(_step - 1);
+   }
+ 
+diff --git a/lib/feat/classroom/data/classroom_store.dart b/lib/feat/classroom/data/classroom_store.dart
+index 049c11b..4b1962c 100644
+--- a/lib/feat/classroom/data/classroom_store.dart
++++ b/lib/feat/classroom/data/classroom_store.dart
+@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
+ import '../../../core/const/school_year.dart';
+ import '../../../core/database/run_local.dart';
+ import '../../../core/helper/id_generator.dart';
++import '../../../core/helper/time_formatter.dart';
+ import '../../../core/session/app_session.dart';
+ import '../../notification/data/models/notification_type.dart';
+ import '../../notification/data/notification_store.dart';
+@@ -23,15 +24,34 @@ class ClassroomStore extends ChangeNotifier {
+ 
+   Future<void> load() async {
+     final snapshot = await _local.load();
++    final groupIds = {for (final group in snapshot.groups) group.id};
+     _groups
+       ..clear()
+       ..addAll(snapshot.groups);
+     _lessons
+       ..clear()
+-      ..addAll(snapshot.lessons);
++      ..addAll(
++        snapshot.lessons.where((lesson) => groupIds.contains(lesson.groupId)),
++      );
+     notifyListeners();
+   }
+ 
++  ClassroomLesson? _clashWith({
++    required Set<int> weekdays,
++    required int start,
++    required int end,
++  }) {
++    for (final lesson in _lessons) {
++      if (!_visible(lesson.subject)) continue;
++      if (groupById(lesson.groupId) == null) continue;
++      if (lesson.weekdays.intersection(weekdays).isEmpty) continue;
++      if (start < lesson.endMinutes && lesson.startMinutes < end) {
++        return lesson;
++      }
++    }
++    return null;
++  }
++
+   bool _visible(String subject) {
+     final session = AppSession.instance;
+     if (!session.hasSubject) return true;
+@@ -172,14 +192,12 @@ class ClassroomStore extends ChangeNotifier {
+     final start = time.hour * 60 + time.minute;
+     final end = endTime.hour * 60 + endTime.minute;
+     if (end <= start) return 'وقت النهاية يجب أن يكون بعد وقت البداية';
+-    final clash = _lessons.any(
+-      (lesson) =>
+-          _visible(lesson.subject) &&
+-          lesson.weekdays.intersection(weekdays).isNotEmpty &&
+-          start < lesson.endMinutes &&
+-          lesson.startMinutes < end,
+-    );
+-    if (clash) return 'يتعارض مع حصة أخرى في نفس اليوم';
++    final clash = _clashWith(weekdays: weekdays, start: start, end: end);
++    if (clash != null) {
++      final other = groupById(clash.groupId);
++      final span = '${formatTime(clash.time)} - ${formatTime(clash.endTime)}';
++      return 'يتعارض مع حصة ${other?.name ?? ''} ($span) في نفس اليوم';
++    }
+     final lesson = ClassroomLesson(
+       id: IdGenerator.newId(),
+       groupId: groupId,
+diff --git a/lib/feat/home/ui/home_screen.dart b/lib/feat/home/ui/home_screen.dart
+index 036f11b..4af429f 100644
+--- a/lib/feat/home/ui/home_screen.dart
++++ b/lib/feat/home/ui/home_screen.dart
+@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
+ import '../../../core/const/app_assets.dart';
+ import '../../../core/helper/responsive_extension.dart';
+ import '../../../core/helper/spacing.dart';
++import '../../../core/routing/routes.dart';
+ import '../../../core/session/app_session.dart';
+ import '../../../core/theme/app_palette.dart';
+ import '../../classroom/data/classroom_store.dart';
+@@ -60,7 +61,7 @@ class HomeScreen extends StatelessWidget {
+                   verticalSpace(height: 20),
+                   HomeLessonsSection(
+                     lessons: HomeLessonMapper.today(store, DateTime.now()),
+-                    onViewAll: () => HomeActions.comingSoon(context),
++                    onViewAll: () => Navigator.of(context).pushNamed(Routes.fullSchedule),
+                     onLessonTap: (id) => HomeActions.openLesson(context, id),
+                     onAddLesson: () => HomeActions.addLesson(context),
+                   ),
+diff --git a/lib/feat/schedule/data/schedule_lesson_mapper.dart b/lib/feat/schedule/data/schedule_lesson_mapper.dart
+index 5d564ae..7b4ffdc 100644
+--- a/lib/feat/schedule/data/schedule_lesson_mapper.dart
++++ b/lib/feat/schedule/data/schedule_lesson_mapper.dart
+@@ -8,7 +8,11 @@ class ScheduleLessonMapper {
+   ScheduleLessonMapper._();
+ 
+   static List<ScheduleLessonModel> forDay(ClassroomStore store, DateTime day) {
+-    final lessons = store.lessonsOn(day.weekday);
++    return forWeekday(store, day.weekday);
++  }
++
++  static List<ScheduleLessonModel> forWeekday(ClassroomStore store, int weekday) {
++    final lessons = store.lessonsOn(weekday);
+     final result = <ScheduleLessonModel>[];
+     for (var i = 0; i < lessons.length; i++) {
+       final lesson = lessons[i];
+diff --git a/lib/feat/schedule/ui/full_schedule_screen.dart b/lib/feat/schedule/ui/full_schedule_screen.dart
+new file mode 100644
+index 0000000..02de702
+--- /dev/null
++++ b/lib/feat/schedule/ui/full_schedule_screen.dart
+@@ -0,0 +1,112 @@
++import 'package:flutter/material.dart';
++import '../../../core/const/week_days.dart';
++import '../../../core/helper/responsive_extension.dart';
++import '../../../core/helper/spacing.dart';
++import '../../../core/theme/app_fonts.dart';
++import '../../../core/theme/app_palette.dart';
++import '../../../core/widgets/app_page_scaffold.dart';
++import '../../classroom/data/classroom_store.dart';
++import '../../classroom/ui/lesson_actions_sheet.dart';
++import '../../home/ui/home_actions.dart';
++import '../data/schedule_lesson_mapper.dart';
++import '../data/schedule_content.dart';
++import 'widgets/schedule_card.dart';
++import 'widgets/schedule_lesson_card.dart';
++
++class FullScheduleScreen extends StatelessWidget {
++  const FullScheduleScreen({super.key});
++
++  @override
++  Widget build(BuildContext context) {
++    final palette = context.palette;
++    final store = ClassroomStore.instance;
++
++    return AppPageScaffold(
++      title: 'الجدول الكامل',
++      child: ListenableBuilder(
++        listenable: store,
++        builder: (context, _) {
++          final today = DateTime.now().weekday;
++          final days = [
++            for (final day in WeekDays.order)
++              if (ScheduleLessonMapper.forWeekday(store, day).isNotEmpty) day,
++          ];
++
++          if (days.isEmpty) {
++            return Padding(
++              padding: EdgeInsets.only(top: 80.h),
++              child: Center(
++                child: Text(
++                  ScheduleContent.emptyDescription,
++                  textAlign: TextAlign.center,
++                  style: AppFonts.bodyMedium.copyWith(
++                    color: palette.textSecondary,
++                  ),
++                ),
++              ),
++            );
++          }
++
++          return Column(
++            crossAxisAlignment: CrossAxisAlignment.stretch,
++            children: [
++              for (final day in days) ...[
++                ScheduleCard(
++                  child: Column(
++                    crossAxisAlignment: CrossAxisAlignment.stretch,
++                    children: [
++                      Row(
++                        children: [
++                          Text(
++                            WeekDays.label(day),
++                            style: AppFonts.titleMedium.copyWith(
++                              color: palette.textPrimary,
++                              fontSize: 16.sp,
++                            ),
++                          ),
++                          if (day == today) ...[
++                            horizontalSpace(width: 8),
++                            Container(
++                              padding: EdgeInsets.symmetric(
++                                horizontal: 10.w,
++                                vertical: 3.h,
++                              ),
++                              decoration: BoxDecoration(
++                                color: palette.primary.withValues(alpha: 0.14),
++                                borderRadius: BorderRadius.circular(20.r),
++                              ),
++                              child: Text(
++                                'اليوم',
++                                style: AppFonts.bodySmall.copyWith(
++                                  color: palette.primary,
++                                  fontSize: 12.sp,
++                                ),
++                              ),
++                            ),
++                          ],
++                        ],
++                      ),
++                      verticalSpace(height: 12),
++                      for (final lesson
++                          in ScheduleLessonMapper.forWeekday(store, day)) ...[
++                        ScheduleLessonCard(
++                          lesson: lesson,
++                          onTap: () =>
++                              HomeActions.openLesson(context, lesson.id),
++                          onMenu: () =>
++                              LessonActionsSheet.show(context, lesson.id),
++                        ),
++                        verticalSpace(height: 10),
++                      ],
++                    ],
++                  ),
++                ),
++                verticalSpace(height: 14),
++              ],
++            ],
++          );
++        },
++      ),
++    );
++  }
++}
+diff --git a/lib/feat/splash/ui/splash_screen.dart b/lib/feat/splash/ui/splash_screen.dart
+index 423fd72..f50ab7d 100644
+--- a/lib/feat/splash/ui/splash_screen.dart
++++ b/lib/feat/splash/ui/splash_screen.dart
+@@ -1,9 +1,11 @@
+ import 'package:flutter/material.dart';
+ import 'package:flutter/services.dart';
++import '../../../core/di/service_locator.dart';
+ import '../../../core/helper/extensions.dart';
+ import '../../../core/routing/routes.dart';
+ import '../../../core/session/app_session.dart';
+ import '../../../core/theme/app_palette.dart';
++import '../../auth/data/repo/auth_repository.dart';
+ import 'widgets/splash_background.dart';
+ import 'widgets/splash_logo.dart';
+ import 'widgets/splash_orbit.dart';
+@@ -44,6 +46,12 @@ class _SplashScreenState extends State<SplashScreen>
+       context.pushReplacementNamed(Routes.home, arguments: session.role);
+       return;
+     }
++    final pending = await getIt<AuthRepository>().pendingSignup();
++    if (!mounted) return;
++    if (pending != null) {
++      context.pushReplacementNamed(Routes.register, arguments: pending);
++      return;
++    }
+     context.pushReplacementNamed(Routes.onboarding);
+   }
+ 
+diff --git a/pubspec.yaml b/pubspec.yaml
+index 216042e..1cddc2d 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -30,6 +30,7 @@ dependencies:
+   drift: 2.33.0
+   drift_flutter: ^0.3.1
+   uuid: ^4.6.0
++  path_provider: ^2.1.5
+ 
+ dev_dependencies:
+   flutter_test:

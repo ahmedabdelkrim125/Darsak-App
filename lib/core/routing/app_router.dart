@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../feat/attendance/ui/full_schedule_screen.dart';
+import '../../feat/auth/data/pending_signup.dart';
 import '../../feat/notification/ui/notification_screen.dart';
 import 'routes.dart';
 import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
@@ -27,6 +29,13 @@ class AppRouter {
       case Routes.login:
         return _fadeRoute(LoginScreen(role: _roleOf(settings)), settings);
       case Routes.register:
+        final arguments = settings.arguments;
+        if (arguments is PendingSignup) {
+          return _fadeRoute(
+            RegisterScreen(role: arguments.role, pending: arguments),
+            settings,
+          );
+        }
         return _fadeRoute(RegisterScreen(role: _roleOf(settings)), settings);
       case Routes.forgotPassword:
         return _fadeRoute(
@@ -39,6 +48,11 @@ class AppRouter {
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => const NotificationScreen(),
+        );
+      case Routes.fullSchedule:
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const FullScheduleScreen(),
         );
       default:
         return MaterialPageRoute<void>(

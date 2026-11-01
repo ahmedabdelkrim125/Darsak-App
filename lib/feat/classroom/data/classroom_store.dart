@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/const/school_year.dart';
 import '../../../core/database/run_local.dart';
 import '../../../core/helper/id_generator.dart';
+import '../../../core/helper/time_formatter.dart';
 import '../../../core/session/app_session.dart';
 import '../../notification/data/models/notification_type.dart';
 import '../../notification/data/notification_store.dart';
@@ -23,13 +24,38 @@ class ClassroomStore extends ChangeNotifier {
 
   Future<void> load() async {
     final snapshot = await _local.load();
+    final groupIds = {for (final group in snapshot.groups) group.id};
+    final orphans = snapshot.lessons
+        .where((lesson) => !groupIds.contains(lesson.groupId))
+        .toList();
     _groups
       ..clear()
       ..addAll(snapshot.groups);
     _lessons
       ..clear()
-      ..addAll(snapshot.lessons);
+      ..addAll(
+        snapshot.lessons.where((lesson) => groupIds.contains(lesson.groupId)),
+      );
+    for (final lesson in orphans) {
+      runLocal(() => _local.deleteLesson(lesson.id));
+    }
     notifyListeners();
+  }
+
+  ClassroomLesson? _clashWith({
+    required Set<int> weekdays,
+    required int start,
+    required int end,
+  }) {
+    for (final lesson in _lessons) {
+      if (!_visible(lesson.subject)) continue;
+      if (groupById(lesson.groupId) == null) continue;
+      if (lesson.weekdays.intersection(weekdays).isEmpty) continue;
+      if (start < lesson.endMinutes && lesson.startMinutes < end) {
+        return lesson;
+      }
+    }
+    return null;
   }
 
   bool _visible(String subject) {
@@ -172,14 +198,12 @@ class ClassroomStore extends ChangeNotifier {
     final start = time.hour * 60 + time.minute;
     final end = endTime.hour * 60 + endTime.minute;
     if (end <= start) return 'وقت النهاية يجب أن يكون بعد وقت البداية';
-    final clash = _lessons.any(
-      (lesson) =>
-          _visible(lesson.subject) &&
-          lesson.weekdays.intersection(weekdays).isNotEmpty &&
-          start < lesson.endMinutes &&
-          lesson.startMinutes < end,
-    );
-    if (clash) return 'يتعارض مع حصة أخرى في نفس اليوم';
+    final clash = _clashWith(weekdays: weekdays, start: start, end: end);
+    if (clash != null) {
+      final other = groupById(clash.groupId);
+      final span = '${formatTime(clash.time)} - ${formatTime(clash.endTime)}';
+      return 'يتعارض مع حصة ${other?.name ?? ''} ($span) في نفس اليوم';
+    }
     final lesson = ClassroomLesson(
       id: IdGenerator.newId(),
       groupId: groupId,

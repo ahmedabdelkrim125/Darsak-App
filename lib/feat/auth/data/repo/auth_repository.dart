@@ -15,6 +15,7 @@ import '../../../../core/network/error/api_messages.dart';
 import '../../../../core/network/models/profile_model.dart';
 import '../../../../core/session/app_session.dart';
 import '../../../../core/session/session_cache.dart';
+import '../pending_signup.dart';
 
 class AuthRepository {
   AuthRepository({
@@ -34,6 +35,7 @@ class AuthRepository {
   }
 
   final LocalDataLoader _localData;
+  final PendingSignupStore _pending = PendingSignupStore();
 
   final AuthApi _authApi;
   final ProfileApi _profileApi;
@@ -92,7 +94,10 @@ class AuthRepository {
       }
 
       final tokens = response.tokens;
-      if (tokens == null) return true;
+      if (tokens == null) {
+        await _pending.save(role: role, email: cleanEmail);
+        return true;
+      }
       await _openSession(tokens, response.user.id);
       return false;
     });
@@ -111,8 +116,13 @@ class AuthRepository {
       final tokens = response.tokens;
       if (tokens == null) throw _error(ApiErrorType.parsing, 'parsing');
       await _openSession(tokens, response.user.id);
+      await _pending.clear();
     });
   }
+
+  Future<PendingSignup?> pendingSignup() => _pending.read();
+
+  Future<void> clearPendingSignup() => _pending.clear();
 
   Future<ApiResult<void>> resendSignupCode(String email) {
     return ApiGuard.run(

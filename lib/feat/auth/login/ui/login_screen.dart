@@ -65,7 +65,11 @@ class _LoginViewState extends State<_LoginView> {
 
   void _onState(BuildContext context, RequestState<UserRole> state) {
     if (state.isSuccess) {
-      context.pushReplacementNamed(Routes.home, arguments: widget.role);
+      context.pushNamedAndRemoveUntil(
+        Routes.home,
+        arguments: widget.role,
+        predicate: (route) => false,
+      );
     } else if (state.isFailure) {
       AppToast.show(context, state.error?.message ?? ApiMessages.unknown);
     }

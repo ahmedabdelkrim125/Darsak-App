@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/const/app_assets.dart';
 import '../../../core/helper/responsive_extension.dart';
 import '../../../core/helper/spacing.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/session/app_session.dart';
 import '../../../core/theme/app_palette.dart';
 import '../../classroom/data/classroom_store.dart';
@@ -60,7 +61,7 @@ class HomeScreen extends StatelessWidget {
                   verticalSpace(height: 20),
                   HomeLessonsSection(
                     lessons: HomeLessonMapper.today(store, DateTime.now()),
-                    onViewAll: () => HomeActions.comingSoon(context),
+                    onViewAll: () => Navigator.of(context).pushNamed(Routes.fullSchedule),
                     onLessonTap: (id) => HomeActions.openLesson(context, id),
                     onAddLesson: () => HomeActions.addLesson(context),
                   ),
