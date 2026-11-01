@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../feat/attendance/ui/full_schedule_screen.dart';
 import '../../feat/auth/data/pending_signup.dart';
+import '../../feat/auth/login/ui/login_screen.dart';
 import '../../feat/notification/ui/notification_screen.dart';
 import 'routes.dart';
 import '../../feat/auth/forgot_password/ui/forgot_password_screen.dart';
-import '../../feat/auth/login/ui/login_screen.dart';
 import '../../feat/auth/register/ui/register_screen.dart';
 import '../../feat/main/ui/main_screen.dart';
 import '../../feat/onboarding/ui/onboarding_screen.dart';

@@ -42,7 +42,7 @@ void setupServiceLocator() {
     )
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepository(
-                localData: LocalDataLoader.instance,
+        localData: LocalDataLoader.instance,
         authApi: getIt(),
         profileApi: getIt(),
         storage: getIt(),

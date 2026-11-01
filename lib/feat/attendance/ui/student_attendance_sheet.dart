@@ -14,7 +14,6 @@ import 'widgets/attendance_record_row.dart';
 import 'widgets/attendance_status_button.dart';
 import 'widgets/attendance_summary_row.dart';
 
-
 class StudentAttendanceSheet extends StatefulWidget {
   const StudentAttendanceSheet({
     super.key,
@@ -176,9 +175,7 @@ class _StudentAttendanceSheetState extends State<StudentAttendanceSheet> {
             if (records.isEmpty)
               Text(
                 'لا يوجد تسجيل في هذا الشهر',
-                style: AppFonts.bodyMedium.copyWith(
-                  color: palette.textPrimary,
-                ),
+                style: AppFonts.bodyMedium.copyWith(color: palette.textPrimary),
               )
             else
               for (final record in records)

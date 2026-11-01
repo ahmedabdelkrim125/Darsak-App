@@ -7,6 +7,8 @@ class AppSession extends ChangeNotifier {
 
   static final AppSession instance = AppSession._();
 
+  static void Function(bool avatarChanged)? onLocalEdit;
+
   String _userId = '';
   UserRole? _role;
   String _fullName = '';
@@ -112,14 +114,24 @@ class AppSession extends ChangeNotifier {
     _bio = bio.trim();
     if (subject != null) _subject = _clean(subject);
     notifyListeners();
+    onLocalEdit?.call(false);
   }
 
   void updateSubject(String value) {
     _subject = _clean(value);
     notifyListeners();
+    onLocalEdit?.call(false);
   }
 
   void setAvatar(String? path) {
+    if (_avatarPath == path) return;
+    _avatarPath = path;
+    notifyListeners();
+    onLocalEdit?.call(true);
+  }
+
+  void applyAvatar(String? path) {
+    if (_avatarPath == path) return;
     _avatarPath = path;
     notifyListeners();
   }

@@ -6,7 +6,7 @@ import 'models/notification_type.dart';
 class NotificationIcons {
   NotificationIcons._();
 
-   static IconData ofType(NotificationType type) {
+  static IconData ofType(NotificationType type) {
     return switch (type) {
       NotificationType.lessonUpcoming => SolarIconsBold.calendar,
       NotificationType.paymentReceived => SolarIconsBold.wallet,

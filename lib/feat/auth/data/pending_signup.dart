@@ -37,8 +37,7 @@ class PendingSignupStore {
       final role = UserRole.values
           .where((value) => value.name == json['role'])
           .firstOrNull;
-      final expired =
-          at == null || DateTime.now().difference(at) > _lifetime;
+      final expired = at == null || DateTime.now().difference(at) > _lifetime;
       if (expired || email.isEmpty || role == null) {
         await prefs.remove(_key);
         return null;

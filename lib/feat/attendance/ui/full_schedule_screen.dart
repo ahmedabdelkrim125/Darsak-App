@@ -9,10 +9,9 @@ import '../../classroom/data/classroom_store.dart';
 import '../../classroom/ui/lesson_actions_sheet.dart';
 import '../../home/ui/home_actions.dart';
 import '../../schedule/data/schedule_content.dart';
-import '../../schedule/data/schedule_lesson_mapper.dart';
 import '../../schedule/ui/widgets/schedule_card.dart';
 import '../../schedule/ui/widgets/schedule_lesson_card.dart';
-
+import '../data/schedule_lesson_mapper.dart';
 
 class FullScheduleScreen extends StatelessWidget {
   const FullScheduleScreen({super.key});
@@ -88,8 +87,10 @@ class FullScheduleScreen extends StatelessWidget {
                         ],
                       ),
                       verticalSpace(height: 12),
-                      for (final lesson
-                          in ScheduleLessonMapper.forWeekday(store, day)) ...[
+                      for (final lesson in ScheduleLessonMapper.forWeekday(
+                        store,
+                        day,
+                      )) ...[
                         ScheduleLessonCard(
                           lesson: lesson,
                           onTap: () =>

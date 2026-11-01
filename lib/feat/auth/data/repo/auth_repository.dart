@@ -178,7 +178,7 @@ class AuthRepository {
     });
   }
 
-    Future<void> signOut() async {
+  Future<void> signOut() async {
     _session.signOut();
     await _localData.close();
     await _cache.clear();

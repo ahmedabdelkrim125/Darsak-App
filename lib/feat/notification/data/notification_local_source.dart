@@ -58,13 +58,11 @@ class NotificationLocalSource {
   Future<void> delete(String id) {
     final now = DateTime.now();
     return _db.transaction(() async {
-      await (_db.update(_db.notifications)..where((t) => t.id.equals(id)))
-          .write(
-            NotificationsCompanion(
-              deletedAt: Value(now),
-              updatedAt: Value(now),
-            ),
-          );
+      await (_db.update(
+        _db.notifications,
+      )..where((t) => t.id.equals(id))).write(
+        NotificationsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+      );
       await _db.markDirty('notifications', id);
     });
   }

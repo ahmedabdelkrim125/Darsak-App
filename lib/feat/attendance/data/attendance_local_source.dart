@@ -55,7 +55,10 @@ class AttendanceLocalSource {
       await (_db.update(
         _db.attendanceRecords,
       )..where((t) => t.id.equals(id))).write(
-        AttendanceRecordsCompanion(deletedAt: Value(now), updatedAt: Value(now)),
+        AttendanceRecordsCompanion(
+          deletedAt: Value(now),
+          updatedAt: Value(now),
+        ),
       );
       await _db.markDirty('attendance', id);
     });

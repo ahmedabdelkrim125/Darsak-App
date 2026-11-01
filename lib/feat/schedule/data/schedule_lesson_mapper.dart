@@ -11,7 +11,10 @@ class ScheduleLessonMapper {
     return forWeekday(store, day.weekday);
   }
 
-  static List<ScheduleLessonModel> forWeekday(ClassroomStore store, int weekday) {
+  static List<ScheduleLessonModel> forWeekday(
+    ClassroomStore store,
+    int weekday,
+  ) {
     final lessons = store.lessonsOn(weekday);
     final result = <ScheduleLessonModel>[];
     for (var i = 0; i < lessons.length; i++) {

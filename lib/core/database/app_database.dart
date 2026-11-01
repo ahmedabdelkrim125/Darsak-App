@@ -18,13 +18,15 @@ part 'app_database.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
+  static void Function()? onDirty;
+
   @override
   int get schemaVersion => 1;
 
   Future<void> markDirty(String entity, String entityId) async {
-    await (delete(
-      outbox,
-    )..where((t) => t.entity.equals(entity) & t.entityId.equals(entityId))).go();
+    await (delete(outbox)
+          ..where((t) => t.entity.equals(entity) & t.entityId.equals(entityId)))
+        .go();
     await into(outbox).insert(
       OutboxCompanion.insert(
         entity: entity,
@@ -32,5 +34,6 @@ class AppDatabase extends _$AppDatabase {
         createdAt: DateTime.now(),
       ),
     );
+    onDirty?.call();
   }
 }

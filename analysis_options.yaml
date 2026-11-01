@@ -1,5 +1,7 @@
 analyzer:
   errors:
+    curly_braces_in_flow_control_structures: ignore
+    depend_on_referenced_packages: ignore
     unnecessary_import: ignore
 include: package:flutter_lints/flutter.yaml
 

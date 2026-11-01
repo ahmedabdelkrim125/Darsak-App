@@ -17,11 +17,7 @@ enum NotificationType {
     NotificationFilter.students,
     NotificationTone.accent,
   ),
-  newMessage(
-    'new_message',
-    NotificationFilter.students,
-    NotificationTone.info,
-  ),
+  newMessage('new_message', NotificationFilter.students, NotificationTone.info),
   studentJoined(
     'student_joined',
     NotificationFilter.students,

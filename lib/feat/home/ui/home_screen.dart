@@ -61,7 +61,8 @@ class HomeScreen extends StatelessWidget {
                   verticalSpace(height: 20),
                   HomeLessonsSection(
                     lessons: HomeLessonMapper.today(store, DateTime.now()),
-                    onViewAll: () => Navigator.of(context).pushNamed(Routes.fullSchedule),
+                    onViewAll: () =>
+                        Navigator.of(context).pushNamed(Routes.fullSchedule),
                     onLessonTap: (id) => HomeActions.openLesson(context, id),
                     onAddLesson: () => HomeActions.addLesson(context),
                   ),

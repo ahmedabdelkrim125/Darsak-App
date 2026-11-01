@@ -25,9 +25,6 @@ class ClassroomStore extends ChangeNotifier {
   Future<void> load() async {
     final snapshot = await _local.load();
     final groupIds = {for (final group in snapshot.groups) group.id};
-    final orphans = snapshot.lessons
-        .where((lesson) => !groupIds.contains(lesson.groupId))
-        .toList();
     _groups
       ..clear()
       ..addAll(snapshot.groups);
@@ -36,9 +33,6 @@ class ClassroomStore extends ChangeNotifier {
       ..addAll(
         snapshot.lessons.where((lesson) => groupIds.contains(lesson.groupId)),
       );
-    for (final lesson in orphans) {
-      runLocal(() => _local.deleteLesson(lesson.id));
-    }
     notifyListeners();
   }
 
