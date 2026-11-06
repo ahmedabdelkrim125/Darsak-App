@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/helper/date_formatter.dart';
+import '../../../core/helper/responsive_extension.dart';
 import '../../../core/helper/spacing.dart';
 import '../../../core/theme/app_fonts.dart';
 import '../../../core/theme/app_palette.dart';
@@ -137,17 +138,29 @@ class _StudentAttendanceSheetState extends State<StudentAttendanceSheet> {
             verticalSpace(height: 12),
             Row(
               children: [
-                for (final status in AttendanceStatus.values) ...[
-                  if (status != AttendanceStatus.values.first)
-                    horizontalSpace(width: 8),
-                  Expanded(
-                    child: AttendanceStatusButton(
-                      status: status,
-                      selected: current == status,
-                      onTap: () => _mark(status),
-                    ),
+                Expanded(
+                  child: AttendanceStatusButton(
+                    status: AttendanceStatus.present,
+                    selected: current == AttendanceStatus.present,
+                    onTap: () => _mark(AttendanceStatus.present),
                   ),
-                ],
+                ),
+                horizontalSpace(width: 8),
+                Expanded(
+                  child: AttendanceStatusButton(
+                    status: AttendanceStatus.tardy,
+                    selected: current == AttendanceStatus.tardy,
+                    onTap: () => _mark(AttendanceStatus.tardy),
+                  ),
+                ),
+                horizontalSpace(width: 8),
+                Expanded(
+                  child: AttendanceStatusButton(
+                    status: AttendanceStatus.absent,
+                    selected: current == AttendanceStatus.absent,
+                    onTap: () => _mark(AttendanceStatus.absent),
+                  ),
+                ),
               ],
             ),
             verticalSpace(height: 8),
@@ -171,12 +184,14 @@ class _StudentAttendanceSheetState extends State<StudentAttendanceSheet> {
             if (records.isEmpty)
               Text(
                 'لا يوجد تسجيل في هذا الشهر',
-                style: AppFonts.bodyMedium.copyWith(color: palette.textPrimary),
+                style: AppFonts.bodyMedium.copyWith(
+                  color: palette.textPrimary,
+                ),
               )
             else
               for (final record in records)
                 Padding(
-                  padding: EdgeInsets.only(bottom: 8),
+                  padding: EdgeInsets.only(bottom: 8.h),
                   child: AttendanceRecordRow(
                     key: ValueKey(record.id),
                     record: record,

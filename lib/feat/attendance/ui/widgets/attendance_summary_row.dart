@@ -26,14 +26,6 @@ class AttendanceSummaryRow extends StatelessWidget {
         horizontalSpace(width: 8),
         Expanded(
           child: _Stat(
-            label: 'تأخير',
-            value: '${summary.delayed}',
-            color: const Color(0xFFF59E0B),
-          ),
-        ),
-        horizontalSpace(width: 8),
-        Expanded(
-          child: _Stat(
             label: 'غياب',
             value: '${summary.absent}',
             color: palette.error,
@@ -42,7 +34,15 @@ class AttendanceSummaryRow extends StatelessWidget {
         horizontalSpace(width: 8),
         Expanded(
           child: _Stat(
-            label: 'النسبة',
+            label: 'تأخير',
+            value: '${summary.lateCount}',
+            color: const Color(0xFFF59E0B),
+          ),
+        ),
+        horizontalSpace(width: 8),
+        Expanded(
+          child: _Stat(
+            label: 'الالتزام',
             value: summary.rateLabel,
             color: palette.primary,
           ),

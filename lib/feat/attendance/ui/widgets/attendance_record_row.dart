@@ -49,7 +49,9 @@ class AttendanceRecordRow extends StatelessWidget {
             Expanded(
               child: Text(
                 '${WeekDays.label(record.date.weekday)} · ${DateFormatter.shortDate(record.date)}',
-                style: AppFonts.bodyMedium.copyWith(color: palette.textPrimary),
+                style: AppFonts.bodyMedium.copyWith(
+                  color: palette.textPrimary,
+                ),
               ),
             ),
             Container(

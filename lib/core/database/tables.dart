@@ -105,6 +105,7 @@ class Outbox extends Table {
   IntColumn get attempts => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
   BoolColumn get failed => boolean().withDefault(const Constant(false))();
+  TextColumn get payload => text().nullable()();
 
   @override
   List<Set<Column>> get uniqueKeys => [

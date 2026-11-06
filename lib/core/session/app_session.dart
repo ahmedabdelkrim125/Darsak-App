@@ -7,8 +7,6 @@ class AppSession extends ChangeNotifier {
 
   static final AppSession instance = AppSession._();
 
-  static void Function(bool avatarChanged)? onLocalEdit;
-
   String _userId = '';
   UserRole? _role;
   String _fullName = '';
@@ -18,7 +16,9 @@ class AppSession extends ChangeNotifier {
   String _phone = '';
   String _bio = '';
   String? _avatarPath;
+  String? _avatarRemote;
   DateTime? _verifiedAt;
+  int _remoteVersion = 0;
 
   String get userId => _userId;
   bool get isSignedIn => _userId.isNotEmpty && _role != null;
@@ -30,6 +30,8 @@ class AppSession extends ChangeNotifier {
   String get phone => _phone;
   String get bio => _bio;
   String? get avatarPath => _avatarPath;
+  String? get avatarRemote => _avatarRemote;
+  int get remoteVersion => _remoteVersion;
   bool get hasSubject => _subject.isNotEmpty;
   String get subjectKey => normalize(_subject);
   bool get isVerified => _verifiedAt != null;
@@ -41,15 +43,31 @@ class AppSession extends ChangeNotifier {
   }
 
   void applyProfile(ProfileModel profile) {
+    final fullName = _clean(profile.fullName);
+    final username = profile.username ?? '';
+    final subject = _clean(profile.subject);
+    final same =
+        _userId == profile.id &&
+        _role == profile.role &&
+        _fullName == fullName &&
+        _username == username &&
+        _subject == subject &&
+        _email == profile.email &&
+        _phone == profile.phone &&
+        _bio == profile.bio &&
+        _verifiedAt == profile.verifiedAt;
+    if (same) return;
+
     _userId = profile.id;
     _role = profile.role;
-    _fullName = _clean(profile.fullName);
-    _username = profile.username ?? '';
-    _subject = _clean(profile.subject);
+    _fullName = fullName;
+    _username = username;
+    _subject = subject;
     _email = profile.email;
     _phone = profile.phone;
     _bio = profile.bio;
     _verifiedAt = profile.verifiedAt;
+    _remoteVersion++;
     notifyListeners();
   }
 
@@ -64,6 +82,7 @@ class AppSession extends ChangeNotifier {
       'phone': _phone,
       'bio': _bio,
       'avatar_path': _avatarPath,
+      'avatar_remote': _avatarRemote,
       'verified_at': _verifiedAt?.toIso8601String(),
     };
   }
@@ -72,7 +91,9 @@ class AppSession extends ChangeNotifier {
     final roleName = json['role'];
     final verified = json['verified_at'];
     _userId = (json['user_id'] as String?) ?? '';
-    _role = UserRole.values.where((role) => role.name == roleName).firstOrNull;
+    _role = UserRole.values
+        .where((role) => role.name == roleName)
+        .firstOrNull;
     _fullName = (json['full_name'] as String?) ?? '';
     _username = (json['username'] as String?) ?? '';
     _subject = (json['subject'] as String?) ?? '';
@@ -80,7 +101,9 @@ class AppSession extends ChangeNotifier {
     _phone = (json['phone'] as String?) ?? '';
     _bio = (json['bio'] as String?) ?? '';
     _avatarPath = json['avatar_path'] as String?;
+    _avatarRemote = json['avatar_remote'] as String?;
     _verifiedAt = verified is String ? DateTime.tryParse(verified) : null;
+    _remoteVersion++;
     notifyListeners();
   }
 
@@ -114,38 +137,34 @@ class AppSession extends ChangeNotifier {
     _bio = bio.trim();
     if (subject != null) _subject = _clean(subject);
     notifyListeners();
-    onLocalEdit?.call(false);
-  }
-
-  void applyDraft({
-    String? fullName,
-    String? phone,
-    String? bio,
-    String? subject,
-  }) {
-    if (fullName != null) _fullName = _clean(fullName);
-    if (phone != null) _phone = phone.trim();
-    if (bio != null) _bio = bio.trim();
-    if (subject != null) _subject = _clean(subject);
-    notifyListeners();
   }
 
   void updateSubject(String value) {
     _subject = _clean(value);
     notifyListeners();
-    onLocalEdit?.call(false);
   }
 
   void setAvatar(String? path) {
-    if (_avatarPath == path) return;
     _avatarPath = path;
     notifyListeners();
-    onLocalEdit?.call(true);
   }
 
-  void applyAvatar(String? path) {
-    if (_avatarPath == path) return;
+  void replaceAvatarPath(String path) {
     _avatarPath = path;
+    _remoteVersion++;
+    notifyListeners();
+  }
+
+  void setAvatarRemote(String? remote) {
+    _avatarRemote = remote;
+    _remoteVersion++;
+    notifyListeners();
+  }
+
+  void setAvatarFromRemote(String? localPath, String? remote) {
+    _avatarPath = localPath;
+    _avatarRemote = remote;
+    _remoteVersion++;
     notifyListeners();
   }
 
@@ -164,7 +183,9 @@ class AppSession extends ChangeNotifier {
     _phone = '';
     _bio = '';
     _avatarPath = null;
+    _avatarRemote = null;
     _verifiedAt = null;
+    _remoteVersion++;
     notifyListeners();
   }
 

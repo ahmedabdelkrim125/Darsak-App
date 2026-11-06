@@ -1,0 +1,1667 @@
+diff --git a/android/app/build.gradle.kts b/android/app/build.gradle.kts
+index 6b81b3d..d06c248 100644
+--- a/android/app/build.gradle.kts
++++ b/android/app/build.gradle.kts
+@@ -3,6 +3,7 @@ plugins {
+     id("kotlin-android")
+     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+     id("dev.flutter.flutter-gradle-plugin")
++    id("com.google.gms.google-services")
+ }
+ 
+ android {
+@@ -11,6 +12,7 @@ android {
+     ndkVersion = flutter.ndkVersion
+ 
+     compileOptions {
++        isCoreLibraryDesugaringEnabled = true
+         sourceCompatibility = JavaVersion.VERSION_17
+         targetCompatibility = JavaVersion.VERSION_17
+     }
+@@ -39,6 +41,10 @@ android {
+     }
+ }
+ 
++dependencies {
++    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
++}
++
+ flutter {
+     source = "../.."
+ }
+diff --git a/android/app/google-services.json b/android/app/google-services.json
+new file mode 100644
+index 0000000..6d18da7
+--- /dev/null
++++ b/android/app/google-services.json
+@@ -0,0 +1,29 @@
++{
++  "project_info": {
++    "project_number": "1088286061410",
++    "project_id": "darsak-app-80951",
++    "storage_bucket": "darsak-app-80951.firebasestorage.app"
++  },
++  "client": [
++    {
++      "client_info": {
++        "mobilesdk_app_id": "1:1088286061410:android:cf6fac3d4b065db609723b",
++        "android_client_info": {
++          "package_name": "com.example.darsak_app"
++        }
++      },
++      "oauth_client": [],
++      "api_key": [
++        {
++          "current_key": "AIzaSyAmlCtMijjOhzIDI9GDJEfX8BBvfpoc11s"
++        }
++      ],
++      "services": {
++        "appinvite_service": {
++          "other_platform_oauth_client": []
++        }
++      }
++    }
++  ],
++  "configuration_version": "1"
++}
+\ No newline at end of file
+diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+index a5dddd9..97c6a68 100644
+--- a/android/app/src/main/AndroidManifest.xml
++++ b/android/app/src/main/AndroidManifest.xml
+@@ -1,6 +1,10 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+ 
+     <uses-permission android:name="android.permission.INTERNET"/>
++    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
++    <uses-permission android:name="android.permission.VIBRATE"/>
++    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
++    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+ 
+     <application
+         android:label="درسّك"
+@@ -29,6 +33,27 @@
+ 
+         </activity>
+ 
++        <receiver
++            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
++            android:exported="false" />
++        <receiver
++            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
++            android:exported="false">
++            <intent-filter>
++                <action android:name="android.intent.action.BOOT_COMPLETED"/>
++                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
++                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
++                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
++            </intent-filter>
++        </receiver>
++
++        <meta-data
++            android:name="com.google.firebase.messaging.default_notification_channel_id"
++            android:value="darsak_alerts_v1" />
++        <meta-data
++            android:name="com.google.firebase.messaging.default_notification_icon"
++            android:resource="@drawable/ic_stat_notification" />
++
+         <meta-data
+             android:name="flutterEmbedding"
+             android:value="2" />
+diff --git a/android/app/src/main/res/drawable/ic_stat_notification.xml b/android/app/src/main/res/drawable/ic_stat_notification.xml
+new file mode 100644
+index 0000000..0c93112
+--- /dev/null
++++ b/android/app/src/main/res/drawable/ic_stat_notification.xml
+@@ -0,0 +1,9 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24">
++    <path
++        android:fillColor="#FFFFFFFF"
++        android:pathData="M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z" />
++</vector>
+diff --git a/android/app/src/main/res/raw/keep.xml b/android/app/src/main/res/raw/keep.xml
+new file mode 100644
+index 0000000..6cfcd2b
+--- /dev/null
++++ b/android/app/src/main/res/raw/keep.xml
+@@ -0,0 +1,3 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources xmlns:tools="http://schemas.android.com/tools"
++    tools:keep="@raw/darsak_notification" />
+diff --git a/android/settings.gradle.kts b/android/settings.gradle.kts
+index ca7fe06..e4e86fb 100644
+--- a/android/settings.gradle.kts
++++ b/android/settings.gradle.kts
+@@ -21,6 +21,7 @@ plugins {
+     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+     id("com.android.application") version "8.11.1" apply false
+     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
++    id("com.google.gms.google-services") version "4.4.2" apply false
+ }
+ 
+ include(":app")
+diff --git a/lib/core/database/local_data_loader.dart b/lib/core/database/local_data_loader.dart
+index e21cf7e..0ed2a4e 100644
+--- a/lib/core/database/local_data_loader.dart
++++ b/lib/core/database/local_data_loader.dart
+@@ -1,7 +1,11 @@
++import 'dart:async';
+ import '../../feat/attendance/data/attendance_store.dart';
+ import '../../feat/classroom/data/classroom_store.dart';
+ import '../../feat/notification/data/notification_store.dart';
+ import '../../feat/payments/data/payments_store.dart';
++import '../notifications/lesson_reminder_service.dart';
++import '../notifications/notification_service.dart';
++import '../notifications/push_service.dart';
+ import '../sync/sync_service.dart';
+ import 'database_provider.dart';
+ 
+@@ -17,10 +21,18 @@ class LocalDataLoader {
+     await AttendanceStore.instance.load();
+     await NotificationStore.instance.load();
+     SyncService.instance.start(userId);
++    unawaited(_startNotifications());
++  }
++
++  Future<void> _startNotifications() async {
++    await NotificationService.instance.requestPermissions();
++    await PushService.instance.register();
++    LessonReminderService.instance.start();
+   }
+ 
+   Future<void> close() async {
+     await SyncService.instance.stop();
++    await LessonReminderService.instance.stop();
+     ClassroomStore.instance.reset();
+     PaymentsStore.instance.reset();
+     AttendanceStore.instance.reset();
+diff --git a/lib/core/notifications/lesson_reminder_service.dart b/lib/core/notifications/lesson_reminder_service.dart
+new file mode 100644
+index 0000000..bfa29da
+--- /dev/null
++++ b/lib/core/notifications/lesson_reminder_service.dart
+@@ -0,0 +1,114 @@
++import 'dart:async';
++import 'package:flutter/material.dart';
++import 'package:timezone/timezone.dart' as tz;
++import '../../feat/classroom/data/classroom_store.dart';
++import '../helper/time_formatter.dart';
++import '../session/app_session.dart';
++import '../settings/app_settings.dart';
++import 'notification_service.dart';
++
++class LessonReminderService {
++  LessonReminderService._();
++
++  static final LessonReminderService instance = LessonReminderService._();
++
++  Timer? _debounce;
++  bool _listening = false;
++  bool _running = false;
++  bool _again = false;
++
++  void start() {
++    if (!_listening) {
++      ClassroomStore.instance.addListener(_request);
++      AppSettings.instance.addListener(_request);
++      _listening = true;
++    }
++    _request();
++  }
++
++  Future<void> stop() async {
++    if (_listening) {
++      ClassroomStore.instance.removeListener(_request);
++      AppSettings.instance.removeListener(_request);
++      _listening = false;
++    }
++    _debounce?.cancel();
++    _debounce = null;
++    await NotificationService.instance.cancelAll();
++  }
++
++  void _request() {
++    _debounce?.cancel();
++    _debounce = Timer(const Duration(milliseconds: 700), () {
++      unawaited(_apply());
++    });
++  }
++
++  Future<void> _apply() async {
++    if (_running) {
++      _again = true;
++      return;
++    }
++    _running = true;
++    try {
++      final service = NotificationService.instance;
++      await service.cancelLessonReminders();
++      final settings = AppSettings.instance;
++      if (!settings.notifyLessons || !AppSession.instance.isSignedIn) return;
++
++      final store = ClassroomStore.instance;
++      final minutes = settings.reminderMinutes;
++      final now = tz.TZDateTime.now(tz.local);
++      var id = 1;
++      for (var weekday = DateTime.monday; weekday <= DateTime.sunday; weekday++) {
++        for (final lesson in store.lessonsOn(weekday)) {
++          final group = store.groupById(lesson.groupId);
++          if (group == null) continue;
++          await service.scheduleWeekly(
++            id: id++,
++            title: 'حصتك بعد ${_label(minutes)}',
++            body:
++                '${lesson.subject} - ${group.name} الساعة ${formatTime(lesson.time)}',
++            firstFire: _nextFire(now, weekday, lesson.time, minutes),
++            payload: '${NotificationService.lessonPayloadPrefix}${lesson.id}',
++          );
++        }
++      }
++    } finally {
++      _running = false;
++      if (_again) {
++        _again = false;
++        _request();
++      }
++    }
++  }
++
++  tz.TZDateTime _nextFire(
++    tz.TZDateTime now,
++    int weekday,
++    TimeOfDay time,
++    int minutes,
++  ) {
++    for (var offset = 0; offset <= 7; offset++) {
++      final day = now.add(Duration(days: offset));
++      if (day.weekday != weekday) continue;
++      final start = tz.TZDateTime(
++        tz.local,
++        day.year,
++        day.month,
++        day.day,
++        time.hour,
++        time.minute,
++      );
++      final fire = start.subtract(Duration(minutes: minutes));
++      if (fire.isAfter(now)) return fire;
++    }
++    return now.add(const Duration(days: 7));
++  }
++
++  String _label(int minutes) {
++    if (minutes == 60) return 'ساعة';
++    if (minutes <= 10) return '$minutes دقائق';
++    return '$minutes دقيقة';
++  }
++}
+diff --git a/lib/core/notifications/notification_service.dart b/lib/core/notifications/notification_service.dart
+new file mode 100644
+index 0000000..882c08f
+--- /dev/null
++++ b/lib/core/notifications/notification_service.dart
+@@ -0,0 +1,185 @@
++import 'dart:async';
++import 'package:flutter/foundation.dart';
++import 'package:flutter_local_notifications/flutter_local_notifications.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++import 'package:timezone/data/latest.dart' as tz_data;
++import 'package:timezone/timezone.dart' as tz;
++import '../routing/app_navigator.dart';
++import '../routing/routes.dart';
++import '../session/app_session.dart';
++
++class NotificationService {
++  NotificationService._();
++
++  static final NotificationService instance = NotificationService._();
++
++  static const String lessonPayloadPrefix = 'lesson:';
++
++  static const String _channelId = 'darsak_alerts_v1';
++  static const String _channelName = 'تنبيهات درسّك';
++  static const String _channelDescription =
++      'تنبيهات الحصص والمدفوعات والمجموعات';
++  static const String _soundName = 'darsak_notification';
++  static const String _statIcon = 'ic_stat_notification';
++  static const String _exactAskedKey = 'notifications.exact_alarm_asked';
++
++  final FlutterLocalNotificationsPlugin _plugin =
++      FlutterLocalNotificationsPlugin();
++
++  bool _ready = false;
++  int _immediateCounter = 0;
++
++  AndroidFlutterLocalNotificationsPlugin? get _android {
++    return _plugin
++        .resolvePlatformSpecificImplementation<
++          AndroidFlutterLocalNotificationsPlugin
++        >();
++  }
++
++  Future<void> init() async {
++    if (_ready) return;
++    try {
++      tz_data.initializeTimeZones();
++      tz.setLocalLocation(tz.getLocation('Africa/Cairo'));
++      await _plugin.initialize(
++        const InitializationSettings(
++          android: AndroidInitializationSettings(_statIcon),
++          iOS: DarwinInitializationSettings(
++            requestAlertPermission: false,
++            requestBadgePermission: false,
++            requestSoundPermission: false,
++          ),
++        ),
++        onDidReceiveNotificationResponse: (_) => openInbox(),
++      );
++      await _android?.createNotificationChannel(
++        const AndroidNotificationChannel(
++          _channelId,
++          _channelName,
++          description: _channelDescription,
++          importance: Importance.high,
++          playSound: true,
++          sound: RawResourceAndroidNotificationSound(_soundName),
++          enableVibration: true,
++        ),
++      );
++      _ready = true;
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] init: $error');
++    }
++  }
++
++  Future<void> requestPermissions() async {
++    if (!_ready) return;
++    try {
++      await _android?.requestNotificationsPermission();
++      await _plugin
++          .resolvePlatformSpecificImplementation<
++            IOSFlutterLocalNotificationsPlugin
++          >()
++          ?.requestPermissions(alert: true, badge: true, sound: true);
++      await _askExactAlarmOnce();
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] permissions: $error');
++    }
++  }
++
++  Future<void> _askExactAlarmOnce() async {
++    final android = _android;
++    if (android == null) return;
++    final can = await android.canScheduleExactNotifications() ?? true;
++    if (can) return;
++    final prefs = await SharedPreferences.getInstance();
++    if (prefs.getBool(_exactAskedKey) ?? false) return;
++    await prefs.setBool(_exactAskedKey, true);
++    await android.requestExactAlarmsPermission();
++  }
++
++  NotificationDetails _details(String body) {
++    return NotificationDetails(
++      android: AndroidNotificationDetails(
++        _channelId,
++        _channelName,
++        channelDescription: _channelDescription,
++        importance: Importance.high,
++        priority: Priority.high,
++        playSound: true,
++        sound: const RawResourceAndroidNotificationSound(_soundName),
++        enableVibration: true,
++        icon: _statIcon,
++        styleInformation: BigTextStyleInformation(body),
++      ),
++      iOS: const DarwinNotificationDetails(
++        presentAlert: true,
++        presentBadge: true,
++        presentSound: true,
++      ),
++    );
++  }
++
++  Future<void> show({required String title, required String body}) async {
++    if (!_ready) return;
++    try {
++      _immediateCounter++;
++      final id = 1000000 + (_immediateCounter % 1000000);
++      await _plugin.show(id, title, body, _details(body));
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] show: $error');
++    }
++  }
++
++  Future<void> scheduleWeekly({
++    required int id,
++    required String title,
++    required String body,
++    required tz.TZDateTime firstFire,
++    required String payload,
++  }) async {
++    if (!_ready) return;
++    try {
++      final exact = await _android?.canScheduleExactNotifications() ?? false;
++      await _plugin.zonedSchedule(
++        id,
++        title,
++        body,
++        firstFire,
++        _details(body),
++        androidScheduleMode: exact
++            ? AndroidScheduleMode.exactAllowWhileIdle
++            : AndroidScheduleMode.inexactAllowWhileIdle,
++        matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
++        payload: payload,
++      );
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] schedule: $error');
++    }
++  }
++
++  Future<void> cancelLessonReminders() async {
++    if (!_ready) return;
++    try {
++      final pending = await _plugin.pendingNotificationRequests();
++      for (final request in pending) {
++        if (request.payload?.startsWith(lessonPayloadPrefix) ?? false) {
++          await _plugin.cancel(request.id);
++        }
++      }
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] cancel: $error');
++    }
++  }
++
++  Future<void> cancelAll() async {
++    if (!_ready) return;
++    try {
++      await _plugin.cancelAll();
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Notifications] cancelAll: $error');
++    }
++  }
++
++  void openInbox() {
++    if (!AppSession.instance.isSignedIn) return;
++    AppNavigator.key.currentState?.pushNamed(Routes.notifications);
++  }
++}
+diff --git a/lib/core/notifications/push_service.dart b/lib/core/notifications/push_service.dart
+new file mode 100644
+index 0000000..5a2dcce
+--- /dev/null
++++ b/lib/core/notifications/push_service.dart
+@@ -0,0 +1,106 @@
++import 'dart:async';
++import 'package:dio/dio.dart';
++import 'package:firebase_core/firebase_core.dart';
++import 'package:firebase_messaging/firebase_messaging.dart';
++import 'package:flutter/foundation.dart';
++import '../../feat/notification/data/models/notification_type.dart';
++import '../../feat/notification/data/notification_store.dart';
++import '../di/service_locator.dart';
++import '../session/app_session.dart';
++import '../sync/sync_service.dart';
++import 'notification_service.dart';
++
++class PushService {
++  PushService._();
++
++  static final PushService instance = PushService._();
++
++  bool _ready = false;
++  String? _token;
++  StreamSubscription<String>? _refresh;
++  StreamSubscription<RemoteMessage>? _foreground;
++  StreamSubscription<RemoteMessage>? _opened;
++
++  String get _platform {
++    return defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
++  }
++
++  Future<void> init() async {
++    if (_ready) return;
++    try {
++      await Firebase.initializeApp();
++      _ready = true;
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Push] init: $error');
++    }
++  }
++
++  Future<void> register() async {
++    if (!_ready) return;
++    try {
++      final messaging = FirebaseMessaging.instance;
++      final token = await messaging.getToken();
++      if (token != null) await _upload(token);
++      _refresh ??= messaging.onTokenRefresh.listen(_upload);
++      _foreground ??= FirebaseMessaging.onMessage.listen(_onForeground);
++      _opened ??= FirebaseMessaging.onMessageOpenedApp.listen(
++        (_) => NotificationService.instance.openInbox(),
++      );
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Push] register: $error');
++    }
++  }
++
++  Future<void> unregister() async {
++    if (!_ready) return;
++    final token = _token;
++    _token = null;
++    await _refresh?.cancel();
++    await _foreground?.cancel();
++    await _opened?.cancel();
++    _refresh = null;
++    _foreground = null;
++    _opened = null;
++    try {
++      if (token != null) {
++        await getIt<Dio>().delete<dynamic>(
++          '/rest/v1/device_tokens',
++          queryParameters: {'token': 'eq.$token'},
++        );
++      }
++      await FirebaseMessaging.instance.deleteToken();
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Push] unregister: $error');
++    }
++  }
++
++  Future<void> _upload(String token) async {
++    if (!AppSession.instance.isSignedIn) return;
++    try {
++      await getIt<Dio>().post<dynamic>(
++        '/rest/v1/rpc/register_device_token',
++        data: {'p_token': token, 'p_platform': _platform},
++      );
++      _token = token;
++    } on Object catch (error) {
++      if (kDebugMode) debugPrint('[Push] upload: $error');
++    }
++  }
++
++  void _onForeground(RemoteMessage message) {
++    SyncService.instance.nudge();
++    final notification = message.notification;
++    final title = notification?.title;
++    if (title == null || title.isEmpty) return;
++    final type = NotificationType.fromKey(
++      (message.data['type'] as String?) ?? 'general',
++    );
++    if (!NotificationStore.isAllowed(type)) return;
++    unawaited(
++      NotificationService.instance.show(
++        title: title,
++        body: notification?.body ?? '',
++      ),
++    );
++  }
++}
+diff --git a/lib/core/session/app_session.dart b/lib/core/session/app_session.dart
+index a5a9062..45a83b2 100644
+--- a/lib/core/session/app_session.dart
++++ b/lib/core/session/app_session.dart
+@@ -117,6 +117,19 @@ class AppSession extends ChangeNotifier {
+     onLocalEdit?.call(false);
+   }
+ 
++  void applyDraft({
++    String? fullName,
++    String? phone,
++    String? bio,
++    String? subject,
++  }) {
++    if (fullName != null) _fullName = _clean(fullName);
++    if (phone != null) _phone = phone.trim();
++    if (bio != null) _bio = bio.trim();
++    if (subject != null) _subject = _clean(subject);
++    notifyListeners();
++  }
++
+   void updateSubject(String value) {
+     _subject = _clean(value);
+     notifyListeners();
+diff --git a/lib/core/sync/profile_sync.dart b/lib/core/sync/profile_sync.dart
+index 10e699e..381a358 100644
+--- a/lib/core/sync/profile_sync.dart
++++ b/lib/core/sync/profile_sync.dart
+@@ -1,5 +1,7 @@
++import 'dart:convert';
+ import 'dart:io';
+ import 'package:dio/dio.dart';
++import 'package:flutter/foundation.dart';
+ import 'package:path_provider/path_provider.dart';
+ import 'package:shared_preferences/shared_preferences.dart';
+ import '../network/models/profile_model.dart';
+@@ -18,8 +20,24 @@ class ProfileSync {
+ 
+   Future<void> markDirty(String userId, {required bool avatar}) async {
+     final prefs = await SharedPreferences.getInstance();
++    await prefs.setString(
++      _key('profile_draft', userId),
++      jsonEncode({
++        'full_name': _session.fullName,
++        'phone': _session.phone,
++        'bio': _session.bio,
++        'subject': _session.subject,
++      }),
++    );
+     await prefs.setBool(_key('profile_dirty', userId), true);
+-    if (avatar) await prefs.setBool(_key('avatar_dirty', userId), true);
++    if (!avatar) return;
++    await prefs.setBool(_key('avatar_dirty', userId), true);
++    final path = _session.avatarPath;
++    if (path == null) {
++      await prefs.remove(_key('avatar_local', userId));
++    } else {
++      await prefs.setString(_key('avatar_local', userId), path);
++    }
+   }
+ 
+   Future<void> sync(String userId) async {
+@@ -27,10 +45,39 @@ class ProfileSync {
+     final remote = await _fetch(userId);
+     if (remote == null) return;
+     await _reconcile(prefs, userId, remote);
+-    await _push(prefs, userId, remote);
++    if (_isDirty(prefs, userId)) {
++      _restoreDraft(prefs, userId);
++      await _push(prefs, userId, remote);
++    }
+     await _pull(prefs, userId);
+   }
+ 
++  bool _isDirty(SharedPreferences prefs, String userId) {
++    return prefs.getBool(_key('profile_dirty', userId)) ?? false;
++  }
++
++  Map<String, dynamic>? _readDraft(SharedPreferences prefs, String userId) {
++    final raw = prefs.getString(_key('profile_draft', userId));
++    if (raw == null) return null;
++    try {
++      final decoded = jsonDecode(raw);
++      return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
++    } on FormatException {
++      return null;
++    }
++  }
++
++  void _restoreDraft(SharedPreferences prefs, String userId) {
++    final draft = _readDraft(prefs, userId);
++    if (draft == null) return;
++    _session.applyDraft(
++      fullName: draft['full_name'] as String?,
++      phone: draft['phone'] as String?,
++      bio: draft['bio'] as String?,
++      subject: draft['subject'] as String?,
++    );
++  }
++
+   Future<ProfileModel?> _fetch(String userId) async {
+     final response = await _dio.get<List<dynamic>>(
+       '/rest/v1/profiles',
+@@ -58,10 +105,22 @@ class ProfileSync {
+         localAvatar != null &&
+         remote.avatarPath == null &&
+         File(localAvatar).existsSync();
+-    if (differs) await prefs.setBool(_key('profile_dirty', userId), true);
++    if (differs) {
++      await prefs.setBool(_key('profile_dirty', userId), true);
++      await prefs.setString(
++        _key('profile_draft', userId),
++        jsonEncode({
++          'full_name': _session.fullName,
++          'phone': _session.phone,
++          'bio': _session.bio,
++          'subject': _session.subject,
++        }),
++      );
++    }
+     if (hasLocalAvatar) {
+       await prefs.setBool(_key('profile_dirty', userId), true);
+       await prefs.setBool(_key('avatar_dirty', userId), true);
++      await prefs.setString(_key('avatar_local', userId), localAvatar);
+     }
+     await prefs.setBool(marker, true);
+   }
+@@ -71,21 +130,21 @@ class ProfileSync {
+     String userId,
+     ProfileModel remote,
+   ) async {
+-    final dirtyKey = _key('profile_dirty', userId);
+-    if (!(prefs.getBool(dirtyKey) ?? false)) return;
+-
+     final avatarKey = _key('avatar_dirty', userId);
+     final remoteKey = _key('avatar_remote', userId);
+     var avatarRemote = prefs.getString(remoteKey) ?? remote.avatarPath;
++    final draft = _readDraft(prefs, userId);
+     final body = <String, dynamic>{
+-      'full_name': _session.fullName,
+-      'phone': _session.phone,
+-      'bio': _session.bio,
+-      'subject': _session.subject,
++      'full_name': (draft?['full_name'] as String?) ?? _session.fullName,
++      'phone': (draft?['phone'] as String?) ?? _session.phone,
++      'bio': (draft?['bio'] as String?) ?? _session.bio,
++      'subject': (draft?['subject'] as String?) ?? _session.subject,
+     };
+ 
+     if (prefs.getBool(avatarKey) ?? false) {
+-      final local = _session.avatarPath;
++      final local =
++          prefs.getString(_key('avatar_local', userId)) ??
++          _session.avatarPath;
+       if (local == null) {
+         final old = avatarRemote;
+         body['avatar_path'] = null;
+@@ -98,6 +157,8 @@ class ProfileSync {
+           body['avatar_path'] = uploaded;
+           avatarRemote = uploaded;
+           if (old != null && old != uploaded) await _deleteRemote(old);
++        } else if (kDebugMode) {
++          debugPrint('[ProfileSync] avatar skipped: $local');
+         }
+       }
+     }
+@@ -115,14 +176,16 @@ class ProfileSync {
+       await prefs.setString(remoteKey, avatarRemote);
+     }
+     await prefs.remove(avatarKey);
+-    await prefs.remove(dirtyKey);
++    await prefs.remove(_key('avatar_local', userId));
++    await prefs.remove(_key('profile_draft', userId));
++    await prefs.remove(_key('profile_dirty', userId));
+   }
+ 
+   Future<String?> _upload(String userId, String localPath) async {
+     final file = File(localPath);
+     if (!file.existsSync()) return null;
+     final bytes = await file.readAsBytes();
+-    if (bytes.length > _maxAvatarBytes) return null;
++    if (bytes.isEmpty || bytes.length > _maxAvatarBytes) return null;
+     final extension = localPath.split('.').last.toLowerCase();
+     final mime = switch (extension) {
+       'png' => 'image/png',
+@@ -135,7 +198,7 @@ class ProfileSync {
+         '$userId/avatar_${DateTime.now().millisecondsSinceEpoch}.$extension';
+     await _dio.post<dynamic>(
+       '/storage/v1/object/avatars/$path',
+-      data: Stream.fromIterable(bytes.map((byte) => [byte])),
++      data: Stream<List<int>>.value(bytes),
+       options: Options(
+         headers: {
+           Headers.contentLengthHeader: bytes.length,
+@@ -156,9 +219,10 @@ class ProfileSync {
+   }
+ 
+   Future<void> _pull(SharedPreferences prefs, String userId) async {
+-    if (prefs.getBool(_key('profile_dirty', userId)) ?? false) return;
++    if (_isDirty(prefs, userId)) return;
+     final remote = await _fetch(userId);
+     if (remote == null) return;
++    if (_isDirty(prefs, userId)) return;
+     _session.applyProfile(remote);
+ 
+     final remoteKey = _key('avatar_remote', userId);
+@@ -174,6 +238,7 @@ class ProfileSync {
+ 
+     final local = await _download(userId, path);
+     if (local == null) return;
++    if (_isDirty(prefs, userId)) return;
+     final previous = _session.avatarPath;
+     _session.applyAvatar(local);
+     await prefs.setString(remoteKey, path);
+diff --git a/lib/core/sync/sync_service.dart b/lib/core/sync/sync_service.dart
+index 66edbb2..70af9e7 100644
+--- a/lib/core/sync/sync_service.dart
++++ b/lib/core/sync/sync_service.dart
+@@ -67,6 +67,21 @@ class SyncService with WidgetsBindingObserver {
+     }
+   }
+ 
++  Future<void> flush() async {
++    if (_userId == null) return;
++    _debounceTimer?.cancel();
++    final deadline = DateTime.now().add(const Duration(seconds: 8));
++    while (_running && DateTime.now().isBefore(deadline)) {
++      await Future<void>.delayed(const Duration(milliseconds: 150));
++    }
++    if (_running) return;
++    try {
++      await sync().timeout(const Duration(seconds: 8));
++    } on Object catch (error) {
++      _log('flush: $error');
++    }
++  }
++
+   void nudge() {
+     if (_userId == null) return;
+     _debounceTimer?.cancel();
+diff --git a/lib/feat/attendance/data/attendance_status_style.dart b/lib/feat/attendance/data/attendance_status_style.dart
+index bd10b00..bc6fca0 100644
+--- a/lib/feat/attendance/data/attendance_status_style.dart
++++ b/lib/feat/attendance/data/attendance_status_style.dart
+@@ -6,6 +6,7 @@ extension AttendanceStatusStyle on AttendanceStatus {
+   Color color(AppPalette palette) {
+     return switch (this) {
+       AttendanceStatus.present => palette.success,
++      AttendanceStatus.delayed => const Color(0xFFF59E0B),
+       AttendanceStatus.absent => palette.error,
+     };
+   }
+@@ -13,6 +14,7 @@ extension AttendanceStatusStyle on AttendanceStatus {
+   IconData get icon {
+     return switch (this) {
+       AttendanceStatus.present => Icons.check_circle_rounded,
++      AttendanceStatus.delayed => Icons.watch_later_rounded,
+       AttendanceStatus.absent => Icons.cancel_rounded,
+     };
+   }
+diff --git a/lib/feat/attendance/data/attendance_store.dart b/lib/feat/attendance/data/attendance_store.dart
+index 57b79fe..0e62fff 100644
+--- a/lib/feat/attendance/data/attendance_store.dart
++++ b/lib/feat/attendance/data/attendance_store.dart
+@@ -46,15 +46,23 @@ class AttendanceStore extends ChangeNotifier {
+ 
+   AttendanceSummary summaryOf(String studentId, DateTime month) {
+     var present = 0;
++    var delayed = 0;
+     var absent = 0;
+     for (final record in recordsOf(studentId, month)) {
+-      if (record.status == AttendanceStatus.present) {
+-        present++;
+-      } else {
+-        absent++;
++      switch (record.status) {
++        case AttendanceStatus.present:
++          present++;
++        case AttendanceStatus.delayed:
++          delayed++;
++        case AttendanceStatus.absent:
++          absent++;
+       }
+     }
+-    return AttendanceSummary(present: present, absent: absent);
++    return AttendanceSummary(
++      present: present,
++      delayed: delayed,
++      absent: absent,
++    );
+   }
+ 
+   void mark({
+diff --git a/lib/feat/attendance/data/models/attendance_status.dart b/lib/feat/attendance/data/models/attendance_status.dart
+index 4136af4..a7729dd 100644
+--- a/lib/feat/attendance/data/models/attendance_status.dart
++++ b/lib/feat/attendance/data/models/attendance_status.dart
+@@ -1,5 +1,6 @@
+ enum AttendanceStatus {
+   present('present', 'حاضر'),
++  delayed('late', 'متأخر'),
+   absent('absent', 'غائب');
+ 
+   const AttendanceStatus(this.key, this.label);
+diff --git a/lib/feat/attendance/data/models/attendance_summary.dart b/lib/feat/attendance/data/models/attendance_summary.dart
+index f5906b8..94bcb2c 100644
+--- a/lib/feat/attendance/data/models/attendance_summary.dart
++++ b/lib/feat/attendance/data/models/attendance_summary.dart
+@@ -1,13 +1,18 @@
+ class AttendanceSummary {
+-  const AttendanceSummary({required this.present, required this.absent});
++  const AttendanceSummary({
++    required this.present,
++    required this.absent,
++    this.delayed = 0,
++  });
+ 
+   final int present;
+   final int absent;
++  final int delayed;
+ 
+-  int get total => present + absent;
++  int get total => present + delayed + absent;
+ 
+   String get rateLabel {
+     if (total == 0) return '—';
+-    return '${(present * 100 / total).round()}%';
++    return '${((present + delayed) * 100 / total).round()}%';
+   }
+ }
+diff --git a/lib/feat/attendance/ui/student_attendance_sheet.dart b/lib/feat/attendance/ui/student_attendance_sheet.dart
+index 4707f49..133b82c 100644
+--- a/lib/feat/attendance/ui/student_attendance_sheet.dart
++++ b/lib/feat/attendance/ui/student_attendance_sheet.dart
+@@ -137,21 +137,17 @@ class _StudentAttendanceSheetState extends State<StudentAttendanceSheet> {
+             verticalSpace(height: 12),
+             Row(
+               children: [
+-                Expanded(
+-                  child: AttendanceStatusButton(
+-                    status: AttendanceStatus.present,
+-                    selected: current == AttendanceStatus.present,
+-                    onTap: () => _mark(AttendanceStatus.present),
++                for (final status in AttendanceStatus.values) ...[
++                  if (status != AttendanceStatus.values.first)
++                    horizontalSpace(width: 8),
++                  Expanded(
++                    child: AttendanceStatusButton(
++                      status: status,
++                      selected: current == status,
++                      onTap: () => _mark(status),
++                    ),
+                   ),
+-                ),
+-                horizontalSpace(width: 10),
+-                Expanded(
+-                  child: AttendanceStatusButton(
+-                    status: AttendanceStatus.absent,
+-                    selected: current == AttendanceStatus.absent,
+-                    onTap: () => _mark(AttendanceStatus.absent),
+-                  ),
+-                ),
++                ],
+               ],
+             ),
+             verticalSpace(height: 8),
+diff --git a/lib/feat/attendance/ui/widgets/attendance_status_button.dart b/lib/feat/attendance/ui/widgets/attendance_status_button.dart
+index 00fe205..35b91a9 100644
+--- a/lib/feat/attendance/ui/widgets/attendance_status_button.dart
++++ b/lib/feat/attendance/ui/widgets/attendance_status_button.dart
+@@ -41,23 +41,29 @@ class AttendanceStatusButton extends StatelessWidget {
+             width: 1.5,
+           ),
+         ),
+-        child: Row(
+-          mainAxisAlignment: MainAxisAlignment.center,
+-          children: [
+-            Icon(
+-              status.icon,
+-              size: 24.r,
+-              color: selected ? color : palette.textSecondary,
++        child: FittedBox(
++          fit: BoxFit.scaleDown,
++          child: Padding(
++            padding: EdgeInsets.symmetric(horizontal: 6.w),
++            child: Row(
++              mainAxisAlignment: MainAxisAlignment.center,
++              children: [
++                Icon(
++                  status.icon,
++                  size: 22.r,
++                  color: selected ? color : palette.textSecondary,
++                ),
++                horizontalSpace(width: 6),
++                Text(
++                  status.label,
++                  style: AppFonts.titleMedium.copyWith(
++                    fontSize: 15.sp,
++                    color: selected ? color : palette.textPrimary,
++                  ),
++                ),
++              ],
+             ),
+-            horizontalSpace(width: 8),
+-            Text(
+-              status.label,
+-              style: AppFonts.titleMedium.copyWith(
+-                fontSize: 16.sp,
+-                color: selected ? color : palette.textPrimary,
+-              ),
+-            ),
+-          ],
++          ),
+         ),
+       ),
+     );
+diff --git a/lib/feat/attendance/ui/widgets/attendance_summary_row.dart b/lib/feat/attendance/ui/widgets/attendance_summary_row.dart
+index 99668ca..edfd5c5 100644
+--- a/lib/feat/attendance/ui/widgets/attendance_summary_row.dart
++++ b/lib/feat/attendance/ui/widgets/attendance_summary_row.dart
+@@ -24,6 +24,14 @@ class AttendanceSummaryRow extends StatelessWidget {
+           ),
+         ),
+         horizontalSpace(width: 8),
++        Expanded(
++          child: _Stat(
++            label: 'تأخير',
++            value: '${summary.delayed}',
++            color: const Color(0xFFF59E0B),
++          ),
++        ),
++        horizontalSpace(width: 8),
+         Expanded(
+           child: _Stat(
+             label: 'غياب',
+@@ -34,7 +42,7 @@ class AttendanceSummaryRow extends StatelessWidget {
+         horizontalSpace(width: 8),
+         Expanded(
+           child: _Stat(
+-            label: 'نسبة الحضور',
++            label: 'النسبة',
+             value: summary.rateLabel,
+             color: palette.primary,
+           ),
+diff --git a/lib/feat/auth/data/repo/auth_repository.dart b/lib/feat/auth/data/repo/auth_repository.dart
+index 40ede35..eaf1fe9 100644
+--- a/lib/feat/auth/data/repo/auth_repository.dart
++++ b/lib/feat/auth/data/repo/auth_repository.dart
+@@ -13,8 +13,10 @@ import '../../../../core/network/error/api_error.dart';
+ import '../../../../core/network/error/api_error_type.dart';
+ import '../../../../core/network/error/api_messages.dart';
+ import '../../../../core/network/models/profile_model.dart';
++import '../../../../core/notifications/push_service.dart';
+ import '../../../../core/session/app_session.dart';
+ import '../../../../core/session/session_cache.dart';
++import '../../../../core/sync/sync_service.dart';
+ import '../pending_signup.dart';
+ 
+ class AuthRepository {
+@@ -178,7 +180,11 @@ class AuthRepository {
+     });
+   }
+ 
+-  Future<void> signOut() async {
++  Future<void> signOut({bool flush = true}) async {
++    if (flush) {
++      await SyncService.instance.flush();
++      await PushService.instance.unregister();
++    }
+     _session.signOut();
+     await _localData.close();
+     await _cache.clear();
+diff --git a/lib/feat/more/ui/edit_profile_screen.dart b/lib/feat/more/ui/edit_profile_screen.dart
+index 05bae49..b328cee 100644
+--- a/lib/feat/more/ui/edit_profile_screen.dart
++++ b/lib/feat/more/ui/edit_profile_screen.dart
+@@ -64,7 +64,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
+     if (!(_formKey.currentState?.validate() ?? false)) return;
+     _session.updateProfile(
+       fullName: _name.text,
+-      email: _email.text,
++      email: _session.email,
+       phone: _phone.text,
+       bio: _bio.text,
+       subject: _canEditSubject ? _subject.text : null,
+@@ -108,7 +108,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
+               textInputAction: TextInputAction.next,
+               textDirection: TextDirection.ltr,
+               textAlign: TextAlign.right,
+-              validator: AppValidators.email,
++              enabled: false,
++              helperText: 'لا يمكن تغيير البريد الإلكتروني من هنا',
+               reserveErrorSpace: true,
+             ),
+             AppTextField(
+diff --git a/lib/feat/notification/data/notification_store.dart b/lib/feat/notification/data/notification_store.dart
+index 216b31d..8d72a58 100644
+--- a/lib/feat/notification/data/notification_store.dart
++++ b/lib/feat/notification/data/notification_store.dart
+@@ -1,6 +1,9 @@
++import 'dart:async';
+ import 'package:flutter/foundation.dart';
+ import '../../../core/database/run_local.dart';
+ import '../../../core/helper/id_generator.dart';
++import '../../../core/notifications/notification_service.dart';
++import '../../../core/settings/app_settings.dart';
+ import 'models/notification_filter.dart';
+ import 'models/notification_model.dart';
+ import 'models/notification_type.dart';
+@@ -51,6 +54,23 @@ class NotificationStore extends ChangeNotifier {
+     _items.add(item);
+     runLocal(() => NotificationLocalSource.instance.saveMany([item]));
+     notifyListeners();
++    if (isAllowed(type)) {
++      unawaited(NotificationService.instance.show(title: title, body: body));
++    }
++  }
++
++  static bool isAllowed(NotificationType type) {
++    final settings = AppSettings.instance;
++    return switch (type) {
++      NotificationType.paymentReceived ||
++      NotificationType.paymentReminder => settings.notifyPayments,
++      NotificationType.studentJoined ||
++      NotificationType.studentAbsent ||
++      NotificationType.newMessage => settings.notifyGroups,
++      NotificationType.lessonUpcoming ||
++      NotificationType.scheduleChanged => settings.notifyLessons,
++      _ => true,
++    };
+   }
+ 
+   void setRead(String id, bool value) {
+diff --git a/lib/feat/payments/ui/group_payments_screen.dart b/lib/feat/payments/ui/group_payments_screen.dart
+new file mode 100644
+index 0000000..dcfb36a
+--- /dev/null
++++ b/lib/feat/payments/ui/group_payments_screen.dart
+@@ -0,0 +1,196 @@
++import 'package:flutter/material.dart';
++import '../../../core/helper/date_formatter.dart';
++import '../../../core/helper/responsive_extension.dart';
++import '../../../core/helper/spacing.dart';
++import '../../../core/theme/app_fonts.dart';
++import '../../../core/theme/app_palette.dart';
++import '../../../core/widgets/app_page_scaffold.dart';
++import '../../attendance/data/attendance_store.dart';
++import '../../attendance/ui/student_attendance_sheet.dart';
++import '../../classroom/data/classroom_store.dart';
++import '../../schedule/ui/widgets/schedule_card.dart';
++import '../../schedule/ui/widgets/schedule_month_nav.dart';
++import '../data/models/payment_filter.dart';
++import '../data/models/payment_status.dart';
++import '../data/models/payments_summary.dart';
++import '../data/payments_content.dart';
++import '../data/payments_store.dart';
++import 'student_payment_sheet.dart';
++import 'widgets/group_student_tile.dart';
++import 'widgets/payments_summary_row.dart';
++
++class GroupPaymentsScreen extends StatefulWidget {
++  const GroupPaymentsScreen({
++    super.key,
++    required this.groupId,
++    required this.month,
++  });
++
++  final String groupId;
++  final DateTime month;
++
++  static Future<void> open(
++    BuildContext context, {
++    required String groupId,
++    required DateTime month,
++  }) {
++    return Navigator.of(context).push(
++      MaterialPageRoute<void>(
++        builder: (_) => GroupPaymentsScreen(groupId: groupId, month: month),
++      ),
++    );
++  }
++
++  @override
++  State<GroupPaymentsScreen> createState() => _GroupPaymentsScreenState();
++}
++
++class _GroupPaymentsScreenState extends State<GroupPaymentsScreen> {
++  late DateTime _month = DateFormatter.monthStart(widget.month);
++  PaymentStatus? _status;
++
++  void _shift(int step) {
++    setState(() => _month = DateFormatter.addMonths(_month, step));
++  }
++
++  Future<void> _pickMonth() async {
++    final picked = await showDatePicker(
++      context: context,
++      initialDate: _month,
++      firstDate: DateTime(2020),
++      lastDate: DateTime(2100),
++    );
++    if (picked == null || !mounted) return;
++    setState(() => _month = DateFormatter.monthStart(picked));
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final palette = context.palette;
++    final classroom = ClassroomStore.instance;
++    final payments = PaymentsStore.instance;
++    final attendance = AttendanceStore.instance;
++
++    return ListenableBuilder(
++      listenable: Listenable.merge([classroom, payments, attendance]),
++      builder: (context, _) {
++        final group = classroom.groupById(widget.groupId);
++        if (group == null) {
++          return const AppPageScaffold(
++            title: 'المجموعة',
++            child: SizedBox.shrink(),
++          );
++        }
++        final all = payments.entries(
++          _month,
++          filter: PaymentFilter(groupId: group.id),
++        );
++        final summary = PaymentsSummary.of(all);
++        final entries = payments.entries(
++          _month,
++          filter: PaymentFilter(groupId: group.id, status: _status),
++        );
++        final today = DateTime.now();
++        var collected = 0;
++        for (final entry in all) {
++          collected += entry.paid;
++        }
++        final expected = group.monthlyFee * group.students.length;
++
++        return AppPageScaffold(
++          title: '${group.subject} - ${group.name}',
++          child: Column(
++            crossAxisAlignment: CrossAxisAlignment.stretch,
++            children: [
++              ScheduleCard(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.stretch,
++                  children: [
++                    Text(
++                      '${group.year.label} · ${group.students.length} طالب',
++                      style: AppFonts.bodyMedium.copyWith(
++                        color: palette.textSecondary,
++                      ),
++                    ),
++                    verticalSpace(height: 6),
++                    Text(
++                      'المحصّل $collected من $expected ${PaymentsContent.currency}',
++                      style: AppFonts.titleMedium.copyWith(
++                        color: palette.textPrimary,
++                      ),
++                    ),
++                  ],
++                ),
++              ),
++              verticalSpace(height: 14),
++              ScheduleMonthNav(
++                label: DateFormatter.monthYear(_month),
++                onPrevious: () => _shift(-1),
++                onNext: () => _shift(1),
++                onPickDate: _pickMonth,
++              ),
++              verticalSpace(height: 14),
++              PaymentsSummaryRow(
++                summary: summary,
++                selected: _status,
++                onSelect: (status) => setState(
++                  () => _status = status == _status ? null : status,
++                ),
++              ),
++              verticalSpace(height: 16),
++              if (group.students.isEmpty)
++                Padding(
++                  padding: EdgeInsets.symmetric(vertical: 24.h),
++                  child: Text(
++                    'لا يوجد طلاب في هذه المجموعة بعد',
++                    textAlign: TextAlign.center,
++                    style: AppFonts.bodyMedium.copyWith(
++                      color: palette.textSecondary,
++                    ),
++                  ),
++                )
++              else if (entries.isEmpty)
++                Padding(
++                  padding: EdgeInsets.symmetric(vertical: 24.h),
++                  child: Text(
++                    PaymentsContent.noResults,
++                    textAlign: TextAlign.center,
++                    style: AppFonts.bodyMedium.copyWith(
++                      color: palette.textSecondary,
++                    ),
++                  ),
++                )
++              else
++                for (final entry in entries)
++                  Padding(
++                    padding: EdgeInsets.only(bottom: 10.h),
++                    child: GroupStudentTile(
++                      key: ValueKey(entry.studentId),
++                      entry: entry,
++                      todayStatus: attendance.statusOf(entry.studentId, today),
++                      summary: attendance.summaryOf(entry.studentId, _month),
++                      onMark: (status) => attendance.mark(
++                        studentId: entry.studentId,
++                        groupId: group.id,
++                        date: today,
++                        status: status,
++                      ),
++                      onPayments: () => StudentPaymentSheet.show(
++                        context,
++                        entry.studentId,
++                        _month,
++                      ),
++                      onAttendance: () => StudentAttendanceSheet.show(
++                        context,
++                        groupId: group.id,
++                        studentId: entry.studentId,
++                      ),
++                    ),
++                  ),
++            ],
++          ),
++        );
++      },
++    );
++  }
++}
+diff --git a/lib/feat/payments/ui/payments_screen.dart b/lib/feat/payments/ui/payments_screen.dart
+index b8d14b2..4386c9c 100644
+--- a/lib/feat/payments/ui/payments_screen.dart
++++ b/lib/feat/payments/ui/payments_screen.dart
+@@ -17,6 +17,7 @@ import '../data/models/payments_summary.dart';
+ import '../data/models/payments_tab.dart';
+ import '../data/payments_content.dart';
+ import '../data/payments_store.dart';
++import 'group_payments_screen.dart';
+ import 'payment_actions_sheet.dart';
+ import 'payment_filter_sheet.dart';
+ import 'payments_actions.dart';
+@@ -71,10 +72,7 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
+   }
+ 
+   void _openGroup(String groupId) {
+-    setState(() {
+-      _filter = PaymentFilter(groupId: groupId);
+-      _tab = PaymentsTab.students;
+-    });
++    GroupPaymentsScreen.open(context, groupId: groupId, month: _month);
+   }
+ 
+   @override
+diff --git a/lib/feat/payments/ui/widgets/group_attendance_chip.dart b/lib/feat/payments/ui/widgets/group_attendance_chip.dart
+new file mode 100644
+index 0000000..47b267a
+--- /dev/null
++++ b/lib/feat/payments/ui/widgets/group_attendance_chip.dart
+@@ -0,0 +1,70 @@
++import 'package:flutter/material.dart';
++import '../../../../core/helper/responsive_extension.dart';
++import '../../../../core/helper/spacing.dart';
++import '../../../../core/theme/app_fonts.dart';
++import '../../../../core/theme/app_palette.dart';
++import '../../../../core/widgets/app_pressable.dart';
++import '../../../attendance/data/attendance_status_style.dart';
++import '../../../attendance/data/models/attendance_status.dart';
++
++class GroupAttendanceChip extends StatelessWidget {
++  const GroupAttendanceChip({
++    super.key,
++    required this.status,
++    required this.selected,
++    required this.onTap,
++  });
++
++  final AttendanceStatus status;
++  final bool selected;
++  final VoidCallback onTap;
++
++  @override
++  Widget build(BuildContext context) {
++    final palette = context.palette;
++    final color = status.color(palette);
++
++    return AppPressable(
++      onTap: onTap,
++      pressedScale: 0.95,
++      child: AnimatedContainer(
++        duration: const Duration(milliseconds: 180),
++        height: 38.h,
++        decoration: BoxDecoration(
++          color: selected
++              ? color.withValues(alpha: 0.14)
++              : palette.surface.withValues(alpha: 0.7),
++          borderRadius: BorderRadius.circular(14.r),
++          border: Border.all(
++            color: selected ? color : palette.primary.withValues(alpha: 0.08),
++            width: 1.2,
++          ),
++        ),
++        child: FittedBox(
++          fit: BoxFit.scaleDown,
++          child: Padding(
++            padding: EdgeInsets.symmetric(horizontal: 6.w),
++            child: Row(
++              mainAxisAlignment: MainAxisAlignment.center,
++              children: [
++                Icon(
++                  status.icon,
++                  size: 18.r,
++                  color: selected ? color : palette.textSecondary,
++                ),
++                horizontalSpace(width: 4),
++                Text(
++                  status.label,
++                  style: AppFonts.bodySmall.copyWith(
++                    fontSize: 12.sp,
++                    color: selected ? color : palette.textPrimary,
++                  ),
++                ),
++              ],
++            ),
++          ),
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/feat/payments/ui/widgets/group_student_tile.dart b/lib/feat/payments/ui/widgets/group_student_tile.dart
+new file mode 100644
+index 0000000..f4193f1
+--- /dev/null
++++ b/lib/feat/payments/ui/widgets/group_student_tile.dart
+@@ -0,0 +1,175 @@
++import 'package:flutter/material.dart';
++import '../../../../core/helper/responsive_extension.dart';
++import '../../../../core/helper/spacing.dart';
++import '../../../../core/theme/app_fonts.dart';
++import '../../../../core/theme/app_palette.dart';
++import '../../../../core/widgets/app_pressable.dart';
++import '../../../attendance/data/models/attendance_status.dart';
++import '../../../attendance/data/models/attendance_summary.dart';
++import '../../data/models/payment_entry.dart';
++import '../../data/models/payment_status.dart';
++import '../../data/payments_content.dart';
++import 'group_attendance_chip.dart';
++import 'payment_status_pill.dart';
++
++class GroupStudentTile extends StatelessWidget {
++  const GroupStudentTile({
++    super.key,
++    required this.entry,
++    required this.todayStatus,
++    required this.summary,
++    required this.onMark,
++    required this.onPayments,
++    required this.onAttendance,
++  });
++
++  final PaymentEntry entry;
++  final AttendanceStatus? todayStatus;
++  final AttendanceSummary summary;
++  final ValueChanged<AttendanceStatus> onMark;
++  final VoidCallback onPayments;
++  final VoidCallback onAttendance;
++
++  String get _amountText {
++    if (entry.status == PaymentStatus.paid) {
++      return 'دفع ${entry.fee} ${PaymentsContent.currency}';
++    }
++    if (entry.status == PaymentStatus.partial) {
++      return 'دفع ${entry.paid} من ${entry.fee} ${PaymentsContent.currency}';
++    }
++    return 'المطلوب ${entry.fee} ${PaymentsContent.currency}';
++  }
++
++  @override
++  Widget build(BuildContext context) {
++    final palette = context.palette;
++    final name = entry.studentName.trim();
++    final initial = name.isEmpty ? '؟' : String.fromCharCode(name.runes.first);
++    final smallStyle = AppFonts.bodySmall.copyWith(
++      color: palette.textSecondary,
++      fontSize: 12.sp,
++    );
++
++    return Container(
++      padding: EdgeInsets.all(12.r),
++      decoration: BoxDecoration(
++        color: palette.background,
++        borderRadius: BorderRadius.circular(20.r),
++        border: Border.all(color: palette.primary.withValues(alpha: 0.06)),
++      ),
++      child: Column(
++        crossAxisAlignment: CrossAxisAlignment.stretch,
++        children: [
++          Row(
++            children: [
++              Container(
++                width: 40.r,
++                height: 40.r,
++                alignment: Alignment.center,
++                decoration: BoxDecoration(
++                  shape: BoxShape.circle,
++                  color: palette.primary.withValues(alpha: 0.12),
++                ),
++                child: Text(
++                  initial,
++                  style: AppFonts.titleMedium.copyWith(color: palette.primary),
++                ),
++              ),
++              horizontalSpace(width: 10),
++              Expanded(
++                child: Column(
++                  crossAxisAlignment: CrossAxisAlignment.start,
++                  children: [
++                    Text(
++                      entry.studentName,
++                      maxLines: 1,
++                      overflow: TextOverflow.ellipsis,
++                      style: AppFonts.titleMedium.copyWith(
++                        color: palette.textPrimary,
++                        fontSize: 15.sp,
++                      ),
++                    ),
++                    verticalSpace(height: 2),
++                    Text(
++                      _amountText,
++                      maxLines: 1,
++                      overflow: TextOverflow.ellipsis,
++                      style: smallStyle,
++                    ),
++                  ],
++                ),
++              ),
++              horizontalSpace(width: 8),
++              PaymentStatusPill(status: entry.status),
++            ],
++          ),
++          verticalSpace(height: 10),
++          Text(
++            'هذا الشهر: حضور ${summary.present} · تأخير ${summary.delayed} · غياب ${summary.absent}',
++            style: smallStyle,
++          ),
++          verticalSpace(height: 8),
++          Row(
++            children: [
++              for (final status in AttendanceStatus.values) ...[
++                if (status != AttendanceStatus.values.first)
++                  horizontalSpace(width: 6),
++                Expanded(
++                  child: GroupAttendanceChip(
++                    status: status,
++                    selected: todayStatus == status,
++                    onTap: () => onMark(status),
++                  ),
++                ),
++              ],
++            ],
++          ),
++          verticalSpace(height: 8),
++          Row(
++            children: [
++              Expanded(
++                child: _LinkButton(label: 'المدفوعات', onTap: onPayments),
++              ),
++              horizontalSpace(width: 8),
++              Expanded(
++                child: _LinkButton(label: 'سجل الحضور', onTap: onAttendance),
++              ),
++            ],
++          ),
++        ],
++      ),
++    );
++  }
++}
++
++class _LinkButton extends StatelessWidget {
++  const _LinkButton({required this.label, required this.onTap});
++
++  final String label;
++  final VoidCallback onTap;
++
++  @override
++  Widget build(BuildContext context) {
++    final palette = context.palette;
++
++    return AppPressable(
++      onTap: onTap,
++      pressedScale: 0.96,
++      child: Container(
++        height: 36.h,
++        alignment: Alignment.center,
++        decoration: BoxDecoration(
++          color: palette.primary.withValues(alpha: 0.08),
++          borderRadius: BorderRadius.circular(12.r),
++        ),
++        child: Text(
++          label,
++          style: AppFonts.bodySmall.copyWith(
++            color: palette.primary,
++            fontSize: 12.sp,
++          ),
++        ),
++      ),
++    );
++  }
++}
+diff --git a/lib/main.dart b/lib/main.dart
+index f00ebb6..109d525 100644
+--- a/lib/main.dart
++++ b/lib/main.dart
+@@ -4,6 +4,8 @@ import 'core/config/app_env.dart';
+ import 'core/cubit/app_bloc_observer.dart';
+ import 'core/di/service_locator.dart';
+ import 'core/network/auth/session_expired_notifier.dart';
++import 'core/notifications/notification_service.dart';
++import 'core/notifications/push_service.dart';
+ import 'core/routing/app_navigator.dart';
+ import 'core/routing/routes.dart';
+ import 'core/settings/app_settings.dart';
+@@ -18,6 +20,8 @@ Future<void> main() async {
+   setupServiceLocator();
+   Bloc.observer = AppBlocObserver();
+   await AppSettings.instance.load();
++  await NotificationService.instance.init();
++  await PushService.instance.init();
+   await getIt<AuthRepository>().restoreSession();
+   _listenForSessionExpiry();
+   runApp(const DarsakApp());
+@@ -25,7 +29,7 @@ Future<void> main() async {
+ 
+ void _listenForSessionExpiry() {
+   getIt<SessionExpiredNotifier>().stream.listen((_) async {
+-    await getIt<AuthRepository>().signOut();
++    await getIt<AuthRepository>().signOut(flush: false);
+     ClassroomStore.instance.reset();
+     PaymentsStore.instance.reset();
+     AppNavigator.key.currentState?.pushNamedAndRemoveUntil(
+diff --git a/pubspec.yaml b/pubspec.yaml
+index 216042e..d170dc9 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -30,6 +30,11 @@ dependencies:
+   drift: 2.33.0
+   drift_flutter: ^0.3.1
+   uuid: ^4.6.0
++  path_provider: ^2.1.5
++  flutter_local_notifications: ^19.4.0
++  timezone: ^0.10.1
++  firebase_core: ^4.0.0
++  firebase_messaging: ^16.0.0
+ 
+ dev_dependencies:
+   flutter_test:

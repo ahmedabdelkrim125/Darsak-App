@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1088286061410",
+    "project_id": "darsak-app-80951",
+    "storage_bucket": "darsak-app-80951.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1088286061410:android:cf6fac3d4b065db609723b",
+        "android_client_info": {
+          "package_name": "com.example.darsak_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmlCtMijjOhzIDI9GDJEfX8BBvfpoc11s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

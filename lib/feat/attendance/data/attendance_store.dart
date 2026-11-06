@@ -46,23 +46,19 @@ class AttendanceStore extends ChangeNotifier {
 
   AttendanceSummary summaryOf(String studentId, DateTime month) {
     var present = 0;
-    var delayed = 0;
     var absent = 0;
+    var lateCount = 0;
     for (final record in recordsOf(studentId, month)) {
       switch (record.status) {
         case AttendanceStatus.present:
           present++;
-        case AttendanceStatus.delayed:
-          delayed++;
         case AttendanceStatus.absent:
           absent++;
+        case AttendanceStatus.tardy:
+          lateCount++;
       }
     }
-    return AttendanceSummary(
-      present: present,
-      delayed: delayed,
-      absent: absent,
-    );
+    return AttendanceSummary(present: present, absent: absent, lateCount: lateCount);
   }
 
   void mark({
